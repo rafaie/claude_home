@@ -1,6 +1,6 @@
 ---
 name: implement-feature
-description: This skill should be used when the user asks to "implement feature", "implement work item", "code this feature", "write the code for", "implement-feature", or wants to complete the implementation of a specific work item against its acceptance criteria.
+description: This skill should be used when the user asks to "implement feature S-core-001", "code this feature", "write the code for", "implement-feature", or wants to complete the coding work for a specific work item. Use this skill for the implementation step only. If the user wants the full test-plan → write-tests → implement cycle, use the implementation-phase skill instead.
 version: 1.0.0
 ---
 

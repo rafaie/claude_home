@@ -67,6 +67,7 @@ Just describe what you want to do.
 | ship-feature | "ship feature S-core-001", "finalize and ship" |
 | debug-loop | "debug this failure", "tests are failing", "fix this error" |
 | failure-triage | "triage failures", "multiple tests failing" |
+| work-item-status | "what's the status of S-core-001", "where are we on this feature" |
 
 ### Maintenance & Quality
 

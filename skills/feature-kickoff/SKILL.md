@@ -1,111 +1,59 @@
 ---
 name: feature-kickoff
 description: This skill should be used when the user asks to "kick off feature", "create work item docs", "set up spec folder for", "initialize documentation for work item", or wants to create the full documentation folder structure for a specific work item before implementation.
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Feature Kickoff
 
-Create the complete documentation folder for a work item. Establishes all required artifacts that downstream skills (implement-feature, test-plan, ship-feature) depend on.
+Create the complete documentation folder for a work item using bundled templates. Establishes all artifacts that downstream skills (implement-feature, test-plan, ship-feature) depend on.
 
 ## Setup
 
-Identify the work item ID from the user's request or conversation context.
+Identify the work item ID from the user's request or context.
 Format: `S-<stream>-<nnn>` (e.g. `S-core-001`).
 
 Read:
-1. `spec/backlog.md` — to find the work item's goal and acceptance criteria
-2. `CLAUDE.md` — for project constraints
+1. `spec/backlog.md` — work item goal and acceptance criteria
+2. `CLAUDE.md` — project constraints
 
 Derive a slug from the work item title (kebab-case, 3–5 words).
-Folder path: `spec/features/<work-id>-<slug>/`
+Target folder: `spec/features/<work-id>-<slug>/`
 
-## Folder Structure to Create
+If the folder already exists with content, report what is present and skip creating files that already have content.
 
-Create all six files. Do not overwrite if they already exist with content.
+## Templates
 
-### `feature.md`
-```markdown
-# <Work Item ID> — <Title>
+All file templates live in `${CLAUDE_PLUGIN_ROOT}/templates/`. Copy each template, replacing `{{WORK_ITEM_ID}}` with the actual ID, `{{TITLE}}` with the work item title, and `{{date}}` with today's date.
 
-## Goal
-<one paragraph from backlog or qa-intake brief>
+## Files to Create
 
-## Acceptance Criteria
-- [ ] <criterion>
+Create these six files. Do not overwrite existing files that already have content.
 
-## Out of Scope
-- <exclusion>
+| Target file | Template |
+|---|---|
+| `spec/features/<work-id>-<slug>/feature.md` | `${CLAUDE_PLUGIN_ROOT}/templates/feature.md` |
+| `spec/features/<work-id>-<slug>/implementation.md` | `${CLAUDE_PLUGIN_ROOT}/templates/implementation.md` |
+| `spec/features/<work-id>-<slug>/test-plan.md` | `${CLAUDE_PLUGIN_ROOT}/templates/test-plan.md` |
+| `spec/features/<work-id>-<slug>/test-results.md` | `${CLAUDE_PLUGIN_ROOT}/templates/test-results.md` |
+| `spec/features/<work-id>-<slug>/status.md` | `${CLAUDE_PLUGIN_ROOT}/templates/status.md` |
+| `spec/features/<work-id>-<slug>/evidence/README.md` | `${CLAUDE_PLUGIN_ROOT}/templates/evidence-readme.md` |
 
-## Open Questions
-- <any unresolved items>
-
-## Decisions
-- <architectural decisions made during implementation — leave empty initially>
-```
-
-### `implementation.md`
-```markdown
-# Implementation Notes — <Work Item ID>
-
-## Approach
-<to be filled during implementation>
-
-## Files Changed
-<to be filled during implementation>
-
-## Key Decisions
-<to be filled during implementation>
-```
-
-### `test-plan.md`
-```markdown
-# Test Plan — <Work Item ID>
-
-## Test Matrix
-<to be filled by the test-plan skill>
-
-## Smoke Scenarios
-<to be filled by the test-plan skill>
-```
-
-### `test-results.md`
-```markdown
-# Test Results — <Work Item ID>
-
-## Results
-<to be filled by the test-runner and smoke-test skills>
-```
-
-### `status.md`
-```markdown
-# Status — <Work Item ID>
-
-**Current phase:** Planning
-**Blockers:** none
-
-## History
-- <date> — folder created by feature-kickoff
-```
-
-### `evidence/README.md`
-```markdown
-# Evidence — <Work Item ID>
-
-Smoke test artifacts and validation evidence will be recorded here.
-```
+After copying, populate `feature.md` with any goal and acceptance criteria already known from `spec/backlog.md` or a prior qa-intake session.
 
 ## ADR Initialization
 
-If no ADR exists in `spec/decisions/`, create `spec/decisions/ADR-0001-initial-architecture.md` as a stub. Do not create an ADR if decisions already exist.
+If no ADR exists in `spec/decisions/`, create `spec/decisions/ADR-0001-initial-architecture.md` as a stub. Skip if ADRs already exist.
 
 ## Update Index
 
-Add or update the work item entry in `spec/index.md` under the appropriate stream section with status `Planned` and a link to `feature.md`.
+Add or update the work item entry in `spec/index.md` under the appropriate stream section:
+- Status: `Planned`
+- Link to `feature.md`
 
 ## Handoff
 
-List all files created. Recommend next steps:
-- Use the spec-linter skill to validate the documentation
-- Use the implementation-phase skill to begin full implementation
+List all files created and any that were skipped (already existed). Recommend next steps:
+- Use the spec-linter skill to validate the documentation before starting
 - Use the qa-intake skill if acceptance criteria are still unclear
+- Use the implementation-phase skill once the spec is complete and linted
