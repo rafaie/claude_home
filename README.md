@@ -2,7 +2,7 @@
 
 SDLC skill pack for Claude Code — a port of [codex_home](https://github.com/rafaie/codex_home) to the Claude Code plugin system.
 
-Provides 23 model-invoked skills that implement a work-item-centric development workflow. Skills trigger automatically based on what you ask; no `/` prefix needed.
+Provides 24 model-invoked skills that implement a work-item-centric development workflow. Skills trigger automatically based on what you ask; no `/` prefix needed.
 
 ## Install
 

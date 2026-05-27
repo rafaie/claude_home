@@ -1,7 +1,7 @@
 ---
 name: project-intake
 description: This skill should be used when the user asks to "bootstrap this project", "set up SDLC for this repo", "initialize the spec folder", "run project intake", or wants to transform a rough idea into structured project documentation with SDLC infrastructure.
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Project Intake
@@ -23,11 +23,14 @@ Create missing SDLC infrastructure. Do not overwrite existing files.
 - `spec/features/`
 - `scripts/`
 
-**Files to create (if absent):**
-- `CLAUDE.md` — minimal project instructions with `## Commands` section
+**Files to create from templates (if absent):**
+
+Copy `${CLAUDE_PLUGIN_ROOT}/templates/project-claude-md.md` → `CLAUDE.md`, replacing `{{PROJECT_NAME}}` with the repo name. Users should customise the `## Commands` section for their stack.
+
+Create these spec stubs if absent:
 - `spec/index.md` — navigation hub (stub)
 - `spec/backlog.md` — backlog (stub)
-- `spec/changelog.md` — with initial entry
+- `spec/changelog.md` — with initial entry dated today
 - `spec/smoke.md` — smoke testing plan (stub)
 
 **Smoke infrastructure (if absent):**
@@ -36,18 +39,19 @@ Create missing SDLC infrastructure. Do not overwrite existing files.
 
 ## Phase 2: Discovery
 
-Read the project idea from available sources: README, existing code, any brief the user has provided. Ask up to five focused questions — only for essential missing information:
-- What is the primary goal?
-- Who are the users or consumers?
-- What are the key constraints (language, runtime, external dependencies)?
-- What does success look like at first milestone?
-- Are there known non-goals or out-of-scope areas?
+Read the project idea from available sources: README, existing code, any brief the user has provided.
 
-Do not ask questions that can be reasonably inferred from existing files.
+**Ask all discovery questions in a single message.** Only ask questions whose answers are not already clear from existing files. Cap at five questions.
+
+- What is the primary goal and the problem it solves?
+- Who are the users or consumers of this system?
+- What are the key constraints (language, runtime, external dependencies)?
+- What does success look like at the first milestone?
+- Are there known non-goals or explicitly out-of-scope areas?
 
 ## Phase 3: Documentation
 
-Create two key artifacts:
+Create two key artifacts using the answers from Phase 2:
 
 **`spec/brief.md`** (1–2 pages):
 - Goal and problem statement
@@ -67,4 +71,4 @@ Create two key artifacts:
 
 ## Handoff
 
-List all files created and preserved. Note any `## Commands` customizations needed in `CLAUDE.md`. Suggest three initial work items. Recommend the backlog-builder skill as the next step.
+List all files created and preserved. Note which `## Commands` values in `CLAUDE.md` need updating for this project's stack. Suggest three initial work items. Recommend the backlog-builder skill as the next step.

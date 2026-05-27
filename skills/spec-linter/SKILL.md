@@ -24,6 +24,7 @@ Run through each check. Report pass (✓) or fail (✗) with a specific remediat
 - [ ] Goal is present and states observable outcome (not just a task description)
 - [ ] Acceptance criteria exist (at least two items)
 - [ ] Each criterion is testable — it describes a verifiable behavior, not an internal implementation detail
+- [ ] Definition of Done section is present with at least the standard items (full test suite, smoke, docs)
 - [ ] Out of scope section is present (even if empty with "none")
 - [ ] No open questions that block implementation
 

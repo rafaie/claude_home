@@ -21,6 +21,8 @@ Read:
 
 If the feature folder does not exist, use the feature-kickoff skill first and return.
 
+Use the work-item-status skill for a quick orientation before starting, especially when resuming from a previous session.
+
 ## Partial Completion Detection
 
 Before running any step, check which steps are already done:

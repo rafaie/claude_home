@@ -8,6 +8,10 @@ version: 1.0.0
 
 Systematically resolve test or runtime failures. Emphasizes reproducibility, minimal reproduction cases, and regression coverage before applying a fix.
 
+## Setup
+
+If the failure is tied to a specific work item, use the work-item-status skill first to confirm the current phase, recent activity, and any prior test results. This prevents re-investigating issues that are already documented.
+
 ## Command Resolution
 
 Read `CLAUDE.md` for command overrides. Defaults:

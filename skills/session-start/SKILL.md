@@ -63,6 +63,7 @@ Suggest the follow-up skill based on project state:
 - Use the feature-kickoff skill to create documentation for a ready item
 - Use the implement-feature skill if an item is fully specified and tests exist
 - Use the implementation-phase skill to run the full cycle for a fully specified item
+- Use the work-item-status skill for a detailed status card on any specific in-progress item
 
 ## Output Format
 
