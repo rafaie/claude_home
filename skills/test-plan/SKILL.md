@@ -15,7 +15,10 @@ Identify the work item ID from the user's request or context.
 Read:
 1. `CLAUDE.md` — project constraints and command overrides
 2. `spec/features/<work-id>-<slug>/feature.md` — acceptance criteria (required)
-3. `spec/features/<work-id>-<slug>/implementation.md` — approach, if available
+3. `spec/features/<work-id>-<slug>/test-plan.md` — check for existing content
+4. `spec/features/<work-id>-<slug>/implementation.md` — approach, if available
+
+If `test-plan.md` already contains a Test Matrix with at least one test case, summarize what is already there and only fill gaps — do not overwrite existing test cases. Report what was preserved and what was added.
 
 ## Phase 1: Input Gathering
 

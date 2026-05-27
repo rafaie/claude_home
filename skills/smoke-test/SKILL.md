@@ -1,7 +1,7 @@
 ---
 name: smoke-test
 description: This skill should be used when the user asks to "run smoke tests", "smoke test this work item", "validate with smoke", "run the smoke harness", or wants to execute smoke tests and capture structured artifacts for a work item.
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Smoke Test
@@ -45,28 +45,16 @@ If any artifact is missing, the run is incomplete — do not treat it as a pass.
 
 ## Failure Classification
 
-Map failures to one of these 18 buckets and report the exit code:
+Map each failure to a category using the exit code. For the full exit code reference and recommended next steps per category, see `${CLAUDE_PLUGIN_ROOT}/skills/smoke-test/references/failure-codes.md`.
 
-| Exit Code | Category |
-|---|---|
-| 10 | Import or startup error |
-| 11 | Configuration missing |
-| 12 | Credential missing |
-| 13 | Entry point not found |
-| 14 | Fixture not found |
-| 20 | Schema validation failure |
-| 21 | Output format mismatch |
-| 22 | Unexpected output content |
-| 30 | Subprocess timeout |
-| 31 | Budget exceeded |
-| 32 | Rate limit hit |
-| 40 | External API error |
-| 41 | Network unreachable |
-| 50 | Assertion failure |
-| 51 | Missing expected artifact |
-| 52 | Extra unexpected artifact |
-| 60 | Flaky — intermittent failure |
-| 99 | Unknown error |
+Quick lookup:
+- **1x** — startup/config/credential/fixture errors
+- **2x** — output schema or content failures
+- **3x** — timeout or budget failures
+- **4x** — external API or network failures
+- **5x** — assertion or artifact failures
+- **60** — flaky (intermittent)
+- **99** — unknown
 
 ## Evidence Recording
 
@@ -88,5 +76,5 @@ Summary: <1–2 sentence description of what passed/failed>
 ## Handoff
 
 On pass: recommend the ship-feature skill.
-On deterministic failure: recommend the debug-loop skill.
-On flaky failure (exit 60): recommend the flaky-test-hunter skill.
+On deterministic failure: consult `references/failure-codes.md` for the exit code category, then use the debug-loop skill.
+On flaky failure (exit 60): use the flaky-test-hunter skill.

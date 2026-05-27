@@ -20,13 +20,14 @@ Read:
 
 ## Pre-Execution Verification
 
-Confirm the feature.md includes:
-- [ ] Acceptance criteria (all checkable)
+Confirm the feature.md includes and is complete:
+- [ ] Acceptance criteria present and all checked off (no unchecked items)
+- [ ] Definition of Done section present with all items checked off
 - [ ] At least one smoke scenario in test-plan.md
 - [ ] Fixture definitions for smoke scenarios
 - [ ] Docstring requirements noted for any API changes
 
-If any item is missing, use the spec-linter skill to identify gaps before proceeding.
+If any item is missing or unchecked, use the spec-linter skill to identify gaps before proceeding. Do not proceed to Step 1 if any acceptance criterion or DoD item is unchecked.
 
 ## Step 1: Run Full Test Suite
 

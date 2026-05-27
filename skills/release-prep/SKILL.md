@@ -51,6 +51,18 @@ All tests pass. No skipped tests that were previously passing.
 ```
 All smoke scenarios pass. Artifacts produced and valid. Smoke is a required gate — release preparation cannot complete without it.
 
+## Work Item Status Check
+
+Before running quality gates, actively scan all work item status files:
+
+```bash
+grep -r "Current phase:" spec/features/*/status.md
+```
+
+Flag any item whose phase is not `Shipped` or `Planned`. A work item stuck at "Implementation Complete", "Testing", or any in-flight phase means the release may be premature. For each flagged item, use the work-item-status skill to assess whether it should be shipped, deferred, or explicitly excluded from this release.
+
+Do not proceed to quality gates until all in-flight items are either shipped or explicitly deferred with a recorded reason in their `status.md`.
+
 ## Documentation Verification
 
 After all gates pass:
@@ -58,7 +70,7 @@ After all gates pass:
 - [ ] `README.md` quickstart matches current behavior
 - [ ] `spec/changelog.md` has an entry for this release
 - [ ] `spec/index.md` is current (run the docs-index-refresh skill if stale)
-- [ ] Any shipped work items have `status.md` set to `Shipped`
+- [ ] All in-flight work items resolved (shipped or deferred with reason)
 
 ## Release Notes
 
