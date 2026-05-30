@@ -69,7 +69,7 @@ After all gates pass:
 
 - [ ] `README.md` quickstart matches current behavior
 - [ ] `spec/changelog.md` has an entry for this release
-- [ ] `spec/index.md` is current (run the docs-index-refresh skill if stale)
+- [ ] `spec/index.md` is current (run the docs-update skill if stale)
 - [ ] All in-flight work items resolved (shipped or deferred with reason)
 
 ## Release Notes

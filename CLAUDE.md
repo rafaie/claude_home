@@ -54,10 +54,11 @@ Add a `## Commands` section to the target repo's `CLAUDE.md` to override default
 
 ## Available skills
 
-This plugin provides 23 SDLC skills. Mention what you want to do and Claude
+This plugin provides 21 SDLC skills. Mention what you want to do and Claude
 will invoke the appropriate skill:
 
 - **session-start** — review project status and suggest priorities
+- **work-item-status** — concise status card for a specific work item
 - **project-intake** — bootstrap a new project with SDLC structure
 - **qa-intake** — clarify and refine requirements for a work item
 - **backlog-builder** — convert specs into a structured stream backlog
@@ -72,13 +73,10 @@ will invoke the appropriate skill:
 - **ship-feature** — validate and finalize a work item for shipping
 - **debug-loop** — systematically resolve test or runtime failures
 - **failure-triage** — triage and prioritize multiple simultaneous failures
-- **adr-review** — identify and document architectural decisions
-- **architecture-updater** — sync architecture docs with the codebase
-- **docs-update** — update user-facing docs and changelog after shipping
-- **docs-index-refresh** — refresh spec/index.md as a navigation hub
+- **architecture-review** — document architectural decisions and sync architecture docs
+- **docs-update** — update user-facing docs, changelog, and spec/index.md
 - **spec-linter** — review work item docs for completeness before implementation
 - **flaky-test-hunter** — identify and stabilize flaky tests
-- **feature-closeout** — verify a work item is fully done (deprecated)
 - **release-prep** — run all checks and prepare release notes
 
 ## Guardrails

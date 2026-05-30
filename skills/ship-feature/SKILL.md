@@ -48,7 +48,7 @@ Record artifact paths in `spec/features/<work-id>-<slug>/test-results.md`.
 
 ## Step 3: Architecture Review
 
-Use the adr-review skill if any of the following occurred:
+Use the architecture-review skill if any of the following occurred:
 - New external dependency added
 - Significant design choice made
 - New integration boundary introduced
@@ -63,7 +63,7 @@ Use the docs-update skill if any user-facing behavior changed:
 - API contract changed
 - README quickstart is affected
 
-Use the docs-index-refresh skill to update `spec/index.md` to reflect the completed status.
+The docs-update skill also refreshes `spec/index.md` to reflect the completed status — no separate step needed.
 
 ## Step 5: Update Work Item Files
 

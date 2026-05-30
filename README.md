@@ -2,7 +2,7 @@
 
 SDLC skill pack for Claude Code — a port of [codex_home](https://github.com/rafaie/codex_home) to the Claude Code plugin system.
 
-Provides 24 model-invoked skills that implement a work-item-centric development workflow. Skills trigger automatically based on what you ask; no `/` prefix needed.
+Provides 21 model-invoked skills that implement a work-item-centric development workflow. Skills trigger automatically based on what you ask; no `/` prefix needed.
 
 ## Install
 
@@ -73,13 +73,10 @@ Just describe what you want to do.
 
 | Skill | Trigger by saying... |
 |---|---|
-| adr-review | "review ADRs", "do we need an ADR for this?" |
-| architecture-updater | "update architecture doc", "sync architecture with code" |
-| docs-update | "update docs after shipping", "add changelog entry" |
-| docs-index-refresh | "refresh the spec index", "update spec/index.md" |
+| architecture-review | "review ADRs", "document this decision", "update architecture doc" |
+| docs-update | "update docs after shipping", "add changelog entry", "refresh the spec index" |
 | spec-linter | "review this spec", "is the spec ready?" |
 | flaky-test-hunter | "find flaky tests", "stabilize this flaky test" |
-| feature-closeout | "close out feature S-core-001" *(deprecated)* |
 | release-prep | "prepare release", "run release checks" |
 
 ## Work Item ID Format
