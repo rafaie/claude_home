@@ -16,8 +16,8 @@ This is the project-level Claude configuration. It takes precedence over the glo
 
 ## Review
 
-- reviewer: subagent        # subagent | headless (separate `claude -p` process)
-- reviewer_model: inherit   # inherit, or a model name/alias for the reviewer
+- reviewer: subagent        # subagent | headless (separate `claude -p`) | codex (OpenAI Codex, read-only sandbox)
+- reviewer_model: inherit   # inherit, or a model name for the reviewer (Claude alias or Codex model)
 - max_review_rounds: 3
 
 ## Runner

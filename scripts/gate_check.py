@@ -32,6 +32,10 @@ BLOCKING_AC_STATUSES = {"not_met", "partial"}
 # Paths that may change after a review without invalidating it (specs, evidence, graph, Markdown docs).
 NON_CODE_PREFIXES = ("spec/", "artifacts/", "graphify-out/")
 NON_CODE_SUFFIXES = (".md",)
+# Untracked tool/test caches that running checks creates; never treated as code changes.
+GENERATED_DIRS = {"__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache", ".tox", ".nox", ".venv",
+                  "node_modules", "htmlcov", ".hypothesis", ".cache"}
+GENERATED_SUFFIXES = (".pyc", ".pyo", ".coverage")
 REVIEW_FILE = re.compile(r"^r(\d+)\.json$")
 
 
@@ -83,6 +87,11 @@ def git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, check=False)
 
 
+def is_generated(path: str) -> bool:
+    """True for untracked caches created by running tests or linters (e.g. ``__pycache__/``)."""
+    return path.endswith(GENERATED_SUFFIXES) or path == ".coverage" or bool(GENERATED_DIRS & set(path.split("/")[:-1]))
+
+
 def freshness(repo: Path, head: str) -> tuple[bool, list[str]]:
     """Check that no code changed since the reviewed commit.
 
@@ -98,7 +107,7 @@ def freshness(repo: Path, head: str) -> tuple[bool, list[str]]:
     if git(repo, "merge-base", "--is-ancestor", head, "HEAD").returncode != 0:
         return False, [f"reviewed commit {head[:10]} is not an ancestor of HEAD (history rewritten?)"]
     changed = set(git(repo, "diff", "--name-only", head).stdout.split())
-    changed |= set(git(repo, "ls-files", "--others", "--exclude-standard").stdout.split())
+    changed |= {f for f in git(repo, "ls-files", "--others", "--exclude-standard").stdout.split() if not is_generated(f)}
     code = sorted(f for f in changed if not f.startswith(NON_CODE_PREFIXES) and not f.endswith(NON_CODE_SUFFIXES))
     if code:
         shown = ", ".join(code[:5]) + (f" (+{len(code) - 5} more)" if len(code) > 5 else "")

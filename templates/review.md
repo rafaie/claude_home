@@ -1,7 +1,7 @@
 # Review r{{ROUND}} — {{TARGET}}
 
 **Verdict:** {{PASS | FAIL}}
-**Scope:** {{story | epic | range}} · **Reviewer:** {{subagent | headless}} · **Date:** {{date}}
+**Scope:** {{story | epic | range}} · **Reviewer:** {{subagent | headless | codex}} · **Date:** {{date}}
 **Range:** `{{base-short}}..{{head-short}}`
 **Open:** {{h}} high · {{m}} medium · {{l}} low
 

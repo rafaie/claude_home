@@ -118,10 +118,18 @@ Story status: `Backlog → Ready → In Progress → In Review → Done`
 
 ### Independent review
 
-Every story is reviewed by a reviewer that has **never seen the implementation conversation**: either a
-fresh-context subagent (`agents/independent-reviewer.md`) or a separate `claude -p` process
-(`scripts/headless_review.sh`). The reviewer is read-only, gets a fixed prompt (ACs, diff range, rubric),
-and writes `reviews/r<N>.json` + `r<N>.md` in the story folder.
+Every story is reviewed by a reviewer that has **never seen the implementation conversation**, in one of
+three modes:
+
+| Mode | Runs as | Why |
+|---|---|---|
+| `subagent` (default) | Fresh-context agent (`agents/independent-reviewer.md`) | Fast, cheap |
+| `headless` | Separate `claude -p` process (`scripts/headless_review.sh`) | Nothing shared with the session |
+| `codex` | OpenAI Codex in a read-only sandbox (`scripts/codex_review.py`) | Different model family, different blind spots; the sandbox cannot modify the repo |
+
+ The reviewer is read-only, gets a fixed prompt (ACs, diff range, rubric), and produces
+`reviews/r<N>.json` + `r<N>.md` in the story folder. You can also ask for a one-off Codex round:
+"review S-core-001 with codex".
 
 The gate is checked by `scripts/gate_check.py`, not by the model: **0 open high and 0 open medium
 findings, every AC met, and the review pinned to the current code**. Failing findings go through a
@@ -205,8 +213,8 @@ Optionally configure the reviewer with a `## Review` section:
 ```markdown
 ## Review
 
-- reviewer: subagent        # subagent | headless (separate `claude -p` process)
-- reviewer_model: inherit   # or a model name/alias for the reviewer
+- reviewer: subagent        # subagent | headless (separate `claude -p`) | codex (OpenAI Codex)
+- reviewer_model: inherit   # or a model name for the reviewer (Claude alias or Codex model)
 - max_review_rounds: 3
 ```
 

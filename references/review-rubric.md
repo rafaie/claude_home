@@ -62,6 +62,14 @@ A review is pinned to its `head` commit. It stays current while the only changes
 `spec/`, `artifacts/`, `graphify-out/`, or to Markdown files. Any other change — committed or not —
 makes it stale, and the gate fails until a new round reviews the new code.
 
+**Generated caches are not changes.** Untracked files created by running tests or linters are ignored
+everywhere the working tree is checked (review preconditions, the reviewer's target check, freshness):
+anything under `__pycache__/`, `.pytest_cache/`, `.mypy_cache/`, `.ruff_cache/`, `.tox/`, `.nox/`,
+`.venv/`, `node_modules/`, `htmlcov/`, `.hypothesis/`, `.cache/`, and `*.pyc`, `*.pyo`, `.coverage`.
+
+The **working tree matches the target** when `HEAD` is the reviewed commit and `git status --porcelain`
+shows nothing except the allowed paths above and generated caches.
+
 ## `r<N>.json` schema (version 1)
 
 ```json
@@ -104,7 +112,10 @@ makes it stale, and the gate fails until a new round reviews the new code.
 Field values:
 
 - `scope`: `story` | `epic` | `range`
-- `reviewer`: `subagent` | `headless`
+- `reviewer`: `subagent` | `subagent-fallback` | `headless` | `codex`
+
+The machine-checkable form of this schema is `review-schema.json` (all fields required; `file`, `line`,
+and `ac` may be `null`).
 - `ac_coverage[].status`: `met` | `partial` | `not_met` | `unverifiable`
 - `checks_run[].result`: `pass` | `fail` | `skipped`
 

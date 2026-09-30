@@ -64,7 +64,7 @@ Use `inline` only for small runs or when subagents are unavailable; it fills the
 ## Step 2: Preconditions and approval
 
 1. `git status --porcelain` must show no uncommitted changes outside `spec/`, `artifacts/`,
-   `graphify-out/`, or Markdown.
+   `graphify-out/`, Markdown, or generated test/lint caches (rubric Freshness section).
    Otherwise stop and ask the user to commit or stash — the runner commits per story.
 2. Graph (optional): `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/graph.py" refresh`. If it prints
    `DOCS_PASS: needed`, run the graphify skill here in the main session (`/graphify <graph_path> --update`),

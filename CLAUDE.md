@@ -107,7 +107,7 @@ will invoke the appropriate skill:
 Agents:
 
 - **independent-reviewer** — read-only reviewer launched by independent-review; never sees the
-  implementation conversation
+  implementation conversation (also runs as `claude -p` or on OpenAI Codex via `scripts/codex_review.py`)
 - **story-implementer** — builds or fixes one story in its own context; launched by story-runner
 
 Plus a utility skill:

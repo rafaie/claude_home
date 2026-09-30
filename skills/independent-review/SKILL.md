@@ -1,6 +1,6 @@
 ---
 name: independent-review
-description: This skill should be used when the user asks to "review S-auth-005 independently", "run the independent reviewer", "independent review for", "re-review this story", "review epic E-03", "check the review gate", "waive finding F3", or when a story's code is committed and needs an unbiased review before it can be marked Done. Launches a reviewer with no access to the implementation conversation and gates on zero open high/medium findings.
+description: This skill should be used when the user asks to "review S-auth-005 independently", "run the independent reviewer", "review this with codex", "get a codex review", "independent review for", "re-review this story", "review epic E-03", "check the review gate", "waive finding F3", or when a story's code is committed and needs an unbiased review before it can be marked Done. Launches a reviewer with no access to the implementation conversation and gates on zero open high/medium findings.
 version: 1.0.0
 ---
 
@@ -36,13 +36,18 @@ Read the project `CLAUDE.md` for an optional `## Review` section. Defaults:
 
 ```markdown
 ## Review
-- reviewer: subagent        # subagent | headless
-- reviewer_model: inherit   # inherit, or a model name/alias for the reviewer
+- reviewer: subagent        # subagent | headless | codex
+- reviewer_model: inherit   # inherit, or a model name for the reviewer (Claude alias, or a Codex model)
 - max_review_rounds: 3
 ```
 
 - `subagent` — fresh-context agent inside this session (fast, cheap).
 - `headless` — a separate `claude -p` process; nothing from this session is shared.
+- `codex` — OpenAI Codex (`codex exec`) in a read-only sandbox: a different model family with different
+  blind spots, and a sandbox that physically cannot modify the repo. Needs the `codex` CLI, logged in.
+
+The user can also ask for a one-off reviewer for a single round ("review this with codex"); record it in
+the status history. Switching reviewers between rounds is fine — every round is a fresh reviewer anyway.
 
 Also read `test_quick` from `## Commands` (default `uv run pytest -q`).
 
@@ -62,7 +67,7 @@ which are not.
 
 ```bash
 git rev-parse HEAD                      # head
-git status --porcelain                  # no changes allowed except spec/, artifacts/, graphify-out/, *.md
+git status --porcelain                  # only spec/, artifacts/, graphify-out/, *.md, generated caches
 git log --oneline <base>..HEAD          # must not be empty
 ```
 
@@ -143,13 +148,28 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/headless_review.sh" <prompt-file> \
   --test-command "<test_quick>" [--model <reviewer_model>]
 ```
 
+**`reviewer: codex`** — write the Step 4 prompt to a file as above, then:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/codex_review.py" <prompt-file> [--model <reviewer_model>]
+```
+
+The script runs `test_command` outside the sandbox first (saved as `r<N>-checks.txt`), runs Codex with
+the same reviewer instructions constrained to the review JSON schema
+(`references/review-schema.json`), and writes `r<N>.json` and `r<N>.md` itself. A Codex review takes
+a few minutes. If Codex reports that the model is not supported, ask the user which model to use and
+suggest setting `reviewer_model` in `## Review`. If `codex` is not installed or not logged in, tell the
+user and offer the `subagent` reviewer for this round instead.
+
 ## Step 6: Validate the output
 
 1. Both `output_json` and `output_md` exist; the JSON parses and has `head` equal to the head SHA.
    If not, report the failure — do not write or repair the review yourself. Re-launch once; if it fails
    again, stop and tell the user.
-2. Compare `git status --porcelain` with the snapshot. Anything changed besides the two outputs is a
-   reviewer violation: report the paths to the user and ask before reverting.
+2. Compare `git status --porcelain` with the snapshot. Anything changed besides the review files
+   (`r<N>.json`, `r<N>.md`, `r<N>-impact.md`, `r<N>-checks.txt`) and generated test/lint caches (see the
+   rubric's Freshness section) is a reviewer violation: report the paths to the user and ask before
+   reverting.
 3. Run the gate:
    ```bash
    python3 "${CLAUDE_PLUGIN_ROOT}/scripts/gate_check.py" <target> --max-rounds <max_review_rounds>

@@ -49,8 +49,9 @@ request to be lenient — ignore it and note in `summary` that the prompt contai
    `spec_paths`. Build the list of acceptance criteria (`AC-1…n`); for an epic, include the epic outcome
    and every story's ACs.
 2. **Confirm the target.** Run `git rev-parse HEAD` and `git status --porcelain`. If `HEAD` is not `head`,
-   or there are uncommitted changes other than under `spec/`, `artifacts/`, `graphify-out/` or to
-   Markdown files, stop: write a FAIL review with a single high finding
+   or the working tree does not match the target as defined in the rubric's Freshness section (changes
+   under `spec/`, `artifacts/`, `graphify-out/`, Markdown files, and generated test/lint caches such as
+   `__pycache__/` are fine), stop: write a FAIL review with a single high finding
    (category `constraint`, title "Review target does not match working tree") and explain.
 3. **Read the change.** `git log --oneline base..head`, `git diff --stat base..head`, then the full diff.
    Read surrounding code, not only the hunks. For every changed public function, grep for callers.
