@@ -79,6 +79,10 @@ will invoke the appropriate skill:
 - **flaky-test-hunter** — identify and stabilize flaky tests
 - **release-prep** — run all checks and prepare release notes
 
+Plus a utility skill:
+
+- **md-to-html** — render a Markdown file into a polished, self-contained HTML page (left-side menu, light theme, Mermaid diagrams)
+
 ## Guardrails
 
 - Never edit or delete user project files unless asked to.

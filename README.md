@@ -79,6 +79,12 @@ Just describe what you want to do.
 | flaky-test-hunter | "find flaky tests", "stabilize this flaky test" |
 | release-prep | "prepare release", "run release checks" |
 
+### Utilities
+
+| Skill | Trigger by saying... |
+|---|---|
+| md-to-html | "convert this markdown to html", "make a nice html page from this md file" |
+
 ## Work Item ID Format
 
 Work items use the format `S-<stream>-<nnn>` (e.g. `S-core-001`, `S-api-002`).
