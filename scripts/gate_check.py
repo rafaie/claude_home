@@ -80,7 +80,7 @@ def load_waivers(reviews_dir: Path) -> set[str]:
 
 def git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
     """Run a git command in ``repo`` and capture its output."""
-    return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True)
+    return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True, check=False)
 
 
 def freshness(repo: Path, head: str) -> tuple[bool, list[str]]:

@@ -82,7 +82,7 @@ def rewrite_links(text: str, names: list[str]) -> str:
 
 def is_tracked(repo: Path, path: Path) -> bool:
     """Return True if git tracks any file under ``path``."""
-    out = subprocess.run(["git", "-C", str(repo), "ls-files", str(path)], capture_output=True, text=True)
+    out = subprocess.run(["git", "-C", str(repo), "ls-files", str(path)], capture_output=True, text=True, check=False)
     return out.returncode == 0 and bool(out.stdout.strip())
 
 

@@ -64,12 +64,15 @@ Projects organize work as **Epic → Story → Task** (full model: `references/h
 - "Work item" means story. Legacy projects use `spec/features/<id>-<slug>/feature.md` — read them as
   stories, keep their layout when writing, and suggest `scripts/migrate_spec.py` to migrate.
 
+A **run** (story-runner) is an execution batch of stories, tracked in `spec/runs/<run-id>/run.json` —
+not a planning level.
+
 A story is Done only when its independent review gate passes: 0 open high and 0 open medium findings,
 checked by `scripts/gate_check.py`. Only the user can waive a finding.
 
 ## Available skills
 
-This plugin provides 22 SDLC skills and one agent. Mention what you want to do and Claude
+This plugin provides 23 SDLC skills and two agents. Mention what you want to do and Claude
 will invoke the appropriate skill:
 
 - **session-start** — review project status and suggest priorities
@@ -94,11 +97,14 @@ will invoke the appropriate skill:
 - **flaky-test-hunter** — identify and stabilize flaky tests
 - **release-prep** — run all checks and prepare release notes
 - **independent-review** — review a story/epic with a fresh-context reviewer and apply the review gate
+- **story-runner** — run several stories (a list, an epic, or the next N Ready) end to end with gates,
+  then an integration review; resumable
 
-Agent:
+Agents:
 
 - **independent-reviewer** — read-only reviewer launched by independent-review; never sees the
   implementation conversation
+- **story-implementer** — builds or fixes one story in its own context; launched by story-runner
 
 Plus a utility skill:
 

@@ -62,6 +62,17 @@ Epic status is derived: `Backlog` (no story started) → `In Progress` (any stor
 | **Review gate** | Latest independent review has 0 open high and 0 open medium findings (after user waivers), no AC `not_met`/`partial`, and the review is pinned to the current code | `scripts/gate_check.py` |
 | **Definition of Done** | All ACs pass (tests reference AC IDs); full checks pass; smoke passes; review gate passes; docs updated if user-facing | ship-feature |
 
+## Runs
+
+A **run** is an execution batch — any set of stories taken end to end by the story-runner skill, in
+dependency order, each through Definition of Ready → Build → Independent Review → Definition of Done,
+then an integration review of the combined change. A run is not a planning level: choose its stories
+when you start it (explicit IDs, an epic, or "the next N Ready stories").
+
+Run state lives in `spec/runs/R-<yyyy-mm-dd>-<letter>/run.json`, managed by `scripts/run_state.py`, so a
+run can be resumed in a later session. Run status: `planned → running → (paused | escalated) → closing →
+done`, or `aborted`.
+
 ## Folder layout
 
 ```
@@ -81,6 +92,10 @@ spec/
 │   ├── status.md
 │   ├── evidence/README.md
 │   └── reviews/                        # r1.json, r1.md, r2.json, … and waivers.json
+├── runs/R-2026-09-30-a/
+│   ├── run.json                        # order, current gate per story, commits, log
+│   ├── reviews/                        # integration review of the run's combined diff
+│   └── run-report.md
 └── decisions/ADR-*.md
 ```
 

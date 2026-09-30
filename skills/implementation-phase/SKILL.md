@@ -1,6 +1,6 @@
 ---
 name: implementation-phase
-description: This skill should be used when the user explicitly asks to "run the full implementation cycle", "run implementation phase for", "do all the steps for", "take this story through review", or wants to orchestrate the complete test-plan → write-tests → implement-feature → independent review sequence end-to-end for a single story (work item). Do NOT use this skill when the user asks to implement a feature directly — use the implement-feature skill for that.
+description: This skill should be used when the user explicitly asks to "run the full implementation cycle", "run implementation phase for", "do all the steps for", "take this story through review", or wants to orchestrate the complete test-plan → write-tests → implement-feature → independent review sequence end-to-end for a single story (work item). Do NOT use this skill when the user asks to implement a feature directly — use the implement-feature skill for that — or for several stories at once — use the story-runner skill for that.
 version: 2.0.0
 ---
 

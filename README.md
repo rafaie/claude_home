@@ -2,7 +2,7 @@
 
 SDLC skill pack for Claude Code — a port of [codex_home](https://github.com/rafaie/codex_home) to the Claude Code plugin system.
 
-Provides 22 model-invoked SDLC skills (plus a utility skill) and an independent reviewer agent that implement a story-centric development workflow: **Epic → Story → Task**, with every story gated by an independent review. Skills trigger automatically based on what you ask; no `/` prefix needed.
+Provides 23 model-invoked SDLC skills (plus a utility skill) and two agents that implement a story-centric development workflow: **Epic → Story → Task**, with every story gated by an independent review. Skills trigger automatically based on what you ask; no `/` prefix needed.
 
 ## Install
 
@@ -56,6 +56,12 @@ Just describe what you want to do.
 | Skill | Trigger by saying... |
 |---|---|
 | independent-review | "review S-core-001 independently", "re-review this story", "review epic E-01", "waive finding F3" |
+
+### Running several stories
+
+| Skill | Trigger by saying... |
+|---|---|
+| story-runner | "run S-core-001 S-core-002 S-api-004", "run epic E-01", "run the next 5 ready P1 stories", "resume the run" |
 
 ### Testing
 
@@ -124,6 +130,35 @@ you can waive a finding. Low findings become backlog follow-ups.
 
 Severity rules and the JSON format are in [references/review-rubric.md](references/review-rubric.md).
 
+### Story runs
+
+The story-runner skill takes any set of stories — explicit IDs, an epic, or "the next N Ready stories" —
+orders them by dependency, asks you to approve the plan, then takes each one through:
+
+```
+Definition of Ready → Build → Independent Review (fix loop) → Definition of Done
+```
+
+Each story is built by a fresh `story-implementer` agent and reviewed by a fresh `independent-reviewer`;
+the two never see each other's context. After the last story, the run gets full checks and an
+integration review of the combined diff, and a report in `spec/runs/<run-id>/run-report.md`.
+
+It works on a `run/<run-id>` branch with one commit per story step, never pushes, and pauses to ask you
+only when something escalates (review round limit, disputed finding, missing requirements). State is
+kept in `spec/runs/<run-id>/run.json` by `scripts/run_state.py`, so "resume the run" continues where it
+stopped:
+
+```
+Run R-2026-09-30-a · running · branch run/R-2026-09-30-a · base a1b2c3d
+
+ #  Story        DoR  Build  Review  DoD   Review state          Commits  Notes
+ 1  S-auth-004   ✓    ✓      ✓       ✓     r1 PASS @ 9f8e7d6     2
+ 2  S-auth-005   ✓    ✓      ●       ·     r1 FAIL (1H)          2
+ 3  S-api-011    ·    ·      ·       ·     -                     0
+
+Close: pending
+```
+
 ### Migrating existing projects
 
 Projects created with the earlier layout (`spec/features/<id>/feature.md`) keep working — skills read
@@ -157,6 +192,15 @@ Optionally configure the reviewer with a `## Review` section:
 - reviewer: subagent        # subagent | headless (separate `claude -p` process)
 - reviewer_model: inherit   # or a model name/alias for the reviewer
 - max_review_rounds: 3
+```
+
+and the story runner with a `## Runner` section:
+
+```markdown
+## Runner
+
+- implementer: subagent          # subagent | inline (build in the main session)
+- pause_between_stories: false   # true = ask before starting each next story
 ```
 
 ## License

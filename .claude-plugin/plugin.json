@@ -1,6 +1,6 @@
 {
   "name": "claude-home",
-  "description": "SDLC skill pack for Claude Code \u2014 23 model-invoked skills and an independent reviewer agent covering intake, planning (epics and stories), implementation, independent review, testing, documentation, and release",
+  "description": "SDLC skill pack for Claude Code \u2014 24 model-invoked skills and two agents covering intake, planning (epics and stories), multi-story runs, implementation, independent review, testing, documentation, and release",
   "version": "2.0.0",
   "author": {
     "name": "Mostafa Rafaie",

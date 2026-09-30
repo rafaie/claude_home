@@ -20,5 +20,10 @@ This is the project-level Claude configuration. It takes precedence over the glo
 - reviewer_model: inherit   # inherit, or a model name/alias for the reviewer
 - max_review_rounds: 3
 
+## Runner
+
+- implementer: subagent          # subagent | inline (build in the main session)
+- pause_between_stories: false   # true = ask before starting each next story
+
 ## Notes
 - {{any project-specific guidelines, constraints, or conventions}}

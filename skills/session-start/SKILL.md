@@ -39,6 +39,9 @@ Scan `spec/stories/*/status.md` files for status, blockers, and review state. If
 `${CLAUDE_PLUGIN_ROOT}/references/hierarchy.md`, and note in the summary that the project can be migrated
 with `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/migrate_spec.py"`.
 
+Check for an unfinished run: `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/run_state.py" latest`. If one
+exists, show it with `run_state.py show <run-id>` — resuming it usually outranks everything else.
+
 For stories In Review, run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/gate_check.py" <story-id>` to get the
 current gate result.
 
@@ -68,6 +71,8 @@ Finishing comes before starting: a story In Review with a failing gate outranks 
 ### 7. Recommend next step
 
 Suggest the follow-up skill based on project state:
+- Use the story-runner skill to resume an unfinished run, or to run several Ready stories (or an epic)
+  end to end
 - Use the qa-intake skill to clarify requirements for an unrefined story
 - Use the feature-kickoff skill to create documentation for a backlog story
 - Use the spec-linter skill to move a documented story to Ready
@@ -89,6 +94,9 @@ Suggest the follow-up skill based on project state:
 
 ## Epics
 - <E-nn> — <title>: <k>/<n> Done
+
+## Active Run
+- <run-id>: <status> · <k>/<n> stories done · current: <story-id> at <gate>   (or "none")
 
 ## Suggested Priorities
 1. <story-id> — <justification> → next: <skill>
