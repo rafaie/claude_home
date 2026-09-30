@@ -67,6 +67,10 @@ Projects organize work as **Epic → Story → Task** (full model: `references/h
 A **run** (story-runner) is an execution batch of stories, tracked in `spec/runs/<run-id>/run.json` —
 not a planning level.
 
+An optional **knowledge graph** (graphify, `references/graphify.md`) gives implementers and reviewers a
+map of the code via `scripts/graph.py`; it is never evidence and never blocks a gate unless the project
+sets `graphify: required`.
+
 A story is Done only when its independent review gate passes: 0 open high and 0 open medium findings,
 checked by `scripts/gate_check.py`. Only the user can waive a finding.
 

@@ -44,6 +44,7 @@ ALLOWED_TOOLS=(
   "Bash(git diff *)" "Bash(git log *)" "Bash(git show *)" "Bash(git status *)"
   "Bash(git rev-parse *)" "Bash(git merge-base *)" "Bash(ls *)"
   "Bash(${TEST_COMMAND}*)"
+  "Bash(graphify query *)" "Bash(graphify affected *)" "Bash(graphify explain *)" "Bash(graphify path *)"
 )
 
 CMD=(claude -p "$(cat "$PROMPT_FILE")"

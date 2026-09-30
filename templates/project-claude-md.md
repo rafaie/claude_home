@@ -25,5 +25,11 @@ This is the project-level Claude configuration. It takes precedence over the glo
 - implementer: subagent          # subagent | inline (build in the main session)
 - pause_between_stories: false   # true = ask before starting each next story
 
+## Graph
+
+- graphify: auto        # auto (use if installed) | required | off
+- graph_path: .         # folder to index; exclude paths with .graphifyignore
+- graph_docs: off       # off (code only) | session (graphify skill) | headless (API key)
+
 ## Notes
 - {{any project-specific guidelines, constraints, or conventions}}

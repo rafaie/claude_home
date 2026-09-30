@@ -159,6 +159,22 @@ Run R-2026-09-30-a · running · branch run/R-2026-09-30-a · base a1b2c3d
 Close: pending
 ```
 
+### Knowledge graph (optional)
+
+If [graphify](https://github.com/Graphify-Labs/graphify) is installed (`uv tool install graphifyy`),
+claude_home keeps a knowledge graph of the project in `graphify-out/` and uses it in two places:
+
+- **Implementers** read `GRAPH_REPORT.md` and run `graphify affected "<symbol>"` before changing shared
+  code, so dependents keep working and stay tested.
+- **Reviewers** get a generated impact file for the diff — changed symbols, dependents outside the diff,
+  and changed symbols with no direct test edge — and may run read-only graph queries to follow leads.
+
+The graph is refreshed at run start, after each story, before each review, and at run close. By default
+it covers code only (local AST, no LLM, seconds); set `graph_docs: session` or `headless` to include
+specs, docs, and reviews. The graph is a map, never evidence: findings still cite source lines, and no
+gate depends on it. Without graphify everything works as before. Details:
+[references/graphify.md](references/graphify.md).
+
 ### Migrating existing projects
 
 Projects created with the earlier layout (`spec/features/<id>/feature.md`) keep working — skills read
@@ -201,6 +217,16 @@ and the story runner with a `## Runner` section:
 
 - implementer: subagent          # subagent | inline (build in the main session)
 - pause_between_stories: false   # true = ask before starting each next story
+```
+
+and the optional knowledge graph with a `## Graph` section:
+
+```markdown
+## Graph
+
+- graphify: auto        # auto (use if installed) | required | off
+- graph_path: .         # folder to index; exclude paths with .graphifyignore
+- graph_docs: off       # off (code only) | session (graphify skill) | headless (API key)
 ```
 
 ## License

@@ -16,6 +16,7 @@ References:
 - `${CLAUDE_PLUGIN_ROOT}/scripts/run_state.py` — plans the order and keeps `spec/runs/<run-id>/run.json`
 - `${CLAUDE_PLUGIN_ROOT}/agents/story-implementer.md` — builds or fixes one story in its own context
 - The independent-review skill — reviews each story; its integrity rules apply here unchanged
+- `${CLAUDE_PLUGIN_ROOT}/references/graphify.md` — optional knowledge graph (`GR` = `scripts/graph.py`)
 
 Below, `RS` means `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/run_state.py"` and `GC` means
 `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/gate_check.py"`.
@@ -62,14 +63,19 @@ Use `inline` only for small runs or when subagents are unavailable; it fills the
 
 ## Step 2: Preconditions and approval
 
-1. `git status --porcelain` must show no uncommitted changes outside `spec/`, `artifacts/`, or Markdown.
+1. `git status --porcelain` must show no uncommitted changes outside `spec/`, `artifacts/`,
+   `graphify-out/`, or Markdown.
    Otherwise stop and ask the user to commit or stash — the runner commits per story.
-2. Baseline: run the quick test command once. If it fails, stop: a red baseline makes every review
+2. Graph (optional): `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/graph.py" refresh`. If it prints
+   `DOCS_PASS: needed`, run the graphify skill here in the main session (`/graphify <graph_path> --update`),
+   then `graph.py mark-docs`. If the graph is `off` or `unavailable`, continue without it (a
+   `graphify: required` project stops here instead).
+3. Baseline: run the quick test command once. If it fails, stop: a red baseline makes every review
    ambiguous. Offer the debug-loop or failure-triage skill.
-3. Show the plan table, the branch it will use, the reviewer and implementer modes, and the max review
-   rounds, then **ask the user to approve the run** (they may reorder or drop stories — re-run `plan`
+4. Show the plan table, the branch it will use, the reviewer and implementer modes, the graph state,
+   and the max review rounds, then **ask the user to approve the run** (they may reorder or drop stories — re-run `plan`
    with the explicit list). Do not start without approval.
-4. On approval:
+5. On approval:
    - Create the run. On the default branch pass `--branch auto` (the run gets `run/<run-id>`);
      otherwise pass the current branch name and stay on it:
      ```bash
@@ -111,6 +117,7 @@ story_folder: <absolute path>
 repo_root: <absolute path>
 plugin_root: <absolute path of ${CLAUDE_PLUGIN_ROOT}>
 commands: <test_quick / test_full / lint / format / typecheck / smoke from CLAUDE.md>
+graph_report: <absolute path to GRAPH_REPORT.md if the graph is enabled; otherwise none>
 ```
 
 **`implementer: inline`** — run the implementation-phase skill yourself, steps 1–4 only.
@@ -154,8 +161,9 @@ Resume according to the answer (`--run-status running`).
 Run the ship-feature skill for the story. It re-checks the review gate, runs full checks, updates docs,
 sets the story `Done`, and commits `<id>: done`.
 
-On success: `RS set … --gate done --state done --commit <sha>`. If ship-feature reports a stale gate
-(code changed after the review), return to Gate 3.
+On success: `RS set … --gate done --state done --commit <sha>`, then refresh the code graph so the next
+story sees this one (`graph.py refresh`; defer any `DOCS_PASS` to the run close). If ship-feature
+reports a stale gate (code changed after the review), return to Gate 3.
 
 If `pause_between_stories` is true, ask before starting the next story.
 
@@ -163,7 +171,8 @@ If `pause_between_stories` is true, ask before starting the next story.
 
 When every story is `done`, `blocked`, `escalated`, or `skipped`:
 
-1. `RS set <run-id> --run-status closing --close-gate checks`. Run the test-runner skill in full mode on
+1. `RS set <run-id> --run-status closing --close-gate checks`. Refresh the graph, including a docs pass
+   if `DOCS_PASS: needed` (main session), so the integration reviewer sees specs and reviews too. Run the test-runner skill in full mode on
    the run branch. Fix regressions between stories with the debug-loop skill; commit as
    `run <run-id>: fix integration`.
 2. **Integration review** — if two or more stories reached `done`:

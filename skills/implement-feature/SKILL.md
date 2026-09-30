@@ -26,6 +26,11 @@ Use the ACs in `story.md` (`AC-1…n`) as the checklist, and the Tasks in `imple
 steps. If no tasks are listed, write ≤ ~5 before coding; needing more suggests the story should be split
 (feature-slicer). Work through the ACs one at a time.
 
+If the project has a knowledge graph (`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/graph.py" status` is
+`current` or `stale`), read `GRAPH_REPORT.md` first and run `graphify affected "<symbol>"` before changing
+an existing function or class, so its dependents stay working and tested. See
+`${CLAUDE_PLUGIN_ROOT}/references/graphify.md`; the graph is a map — verify in source.
+
 ### 2. Implement iteratively
 
 Make the minimal change to satisfy one AC at a time. After each AC:

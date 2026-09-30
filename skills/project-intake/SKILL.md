@@ -26,7 +26,7 @@ Create missing SDLC infrastructure. Do not overwrite existing files.
 
 **Files to create from templates (if absent):**
 
-Copy `${CLAUDE_PLUGIN_ROOT}/templates/project-claude-md.md` → `CLAUDE.md`, replacing `{{PROJECT_NAME}}` with the repo name. Users should customise the `## Commands` section for their stack and, optionally, the `## Review` section (reviewer isolation and round limit).
+Copy `${CLAUDE_PLUGIN_ROOT}/templates/project-claude-md.md` → `CLAUDE.md`, replacing `{{PROJECT_NAME}}` with the repo name. Users should customise the `## Commands` section for their stack and, optionally, the `## Review` (reviewer isolation and round limit), `## Runner`, and `## Graph` (knowledge graph, see `${CLAUDE_PLUGIN_ROOT}/references/graphify.md`) sections. If graphify is used, add `graphify-out/` to `.gitignore`.
 
 Create these spec stubs if absent:
 - `spec/index.md` — navigation hub (stub)

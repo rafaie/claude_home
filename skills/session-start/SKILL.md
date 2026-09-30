@@ -39,6 +39,10 @@ Scan `spec/stories/*/status.md` files for status, blockers, and review state. If
 `${CLAUDE_PLUGIN_ROOT}/references/hierarchy.md`, and note in the summary that the project can be migrated
 with `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/migrate_spec.py"`.
 
+Check the knowledge graph (optional): `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/graph.py" status`. If it
+is `current` or `stale`, skim `GRAPH_REPORT.md` for the project's core abstractions; mention a
+`missing`/`stale` graph or a pending docs pass in the summary (it is refreshed at the next run or review).
+
 Check for an unfinished run: `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/run_state.py" latest`. If one
 exists, show it with `run_state.py show <run-id>` — resuming it usually outranks everything else.
 

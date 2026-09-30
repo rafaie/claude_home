@@ -15,6 +15,7 @@ orchestrator stays small; everything you need is in the files named in your task
 - `plugin_root` — the claude_home plugin folder; its skills are at `<plugin_root>/skills/<name>/SKILL.md`
 - `commands` — the project's test_quick, test_full, lint, format, typecheck, and smoke commands
 - `review_file` — (fix mode) the `r<N>.json` to address; `waivers` — path or `none`
+- `graph_report` — path to the project's `GRAPH_REPORT.md`, or `none`
 - `spec_paths` — (fix mode, integration reviews only) the story files the review covered; in that case
   `story_id` is the run or epic ID and `story_folder` is the run or epic folder
 
@@ -29,6 +30,13 @@ orchestrator stays small; everything you need is in the files named in your task
    or delete a test to make checks pass; if a test is wrong, fix it and say why in your notes.
 6. If you are blocked (missing information, a failing check you cannot fix, a story that is too large),
    stop and report `BLOCKED` with the reason. Do not guess at requirements.
+
+## Using the knowledge graph
+
+If `graph_report` is not `none`, read it before planning, and before changing any existing function or
+class run `graphify affected "<symbol>"` (read-only) to see what depends on it — then make sure those
+callers still work and are covered by tests. Rules and commands: `<plugin_root>/references/graphify.md`.
+Never rebuild the graph or run a docs pass; the runner owns that. The graph is a map: verify in source.
 
 ## Build mode
 
