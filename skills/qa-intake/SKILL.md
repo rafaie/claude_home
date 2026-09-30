@@ -1,24 +1,24 @@
 ---
 name: qa-intake
-description: This skill should be used when the user asks to "clarify requirements for", "qa intake for", "refine this work item", "what are the acceptance criteria for", or wants to turn a rough feature request into a well-defined work item with clear acceptance criteria before implementation begins.
-version: 1.1.0
+description: This skill should be used when the user asks to "clarify requirements for", "qa intake for", "refine this work item", "refine this story", "what are the acceptance criteria for", or wants to turn a rough feature request into a well-defined story (work item) with clear acceptance criteria before implementation begins.
+version: 2.0.0
 ---
 
 # QA Intake
 
-Clarify and refine requirements for a work item before implementation. Produces a structured brief with acceptance criteria and a definition of done that drive the test-plan and implement-feature skills.
+Clarify and refine requirements for a story before implementation. Produces a story statement, numbered acceptance criteria, and a Definition of Done that drive the test-plan, implement-feature, and independent-review skills. Model: `${CLAUDE_PLUGIN_ROOT}/references/hierarchy.md`.
 
 ## Setup
 
-Identify the work item ID (format: `S-<stream>-<nnn>`) from the user's request or context.
+Identify the story ID (format: `S-<area>-<nnn>`) from the user's request or context.
 
 Read in order:
 1. Project `CLAUDE.md` — command overrides and project constraints
-2. `spec/backlog.md` — target work item goal and stream
+2. `spec/backlog.md` — target story goal, epic, and area
 3. `spec/brief.md` or `spec/index.md` — project context
-4. `spec/features/<work-id>-<slug>/feature.md` — **if it exists**, load it to update rather than overwrite
+4. `spec/stories/<story-id>-<slug>/story.md` (legacy: `spec/features/<story-id>-<slug>/feature.md`) — **if it exists**, load it to update rather than overwrite
 
-If `feature.md` already exists with content, summarize what is already known and only ask questions about the gaps. Do not discard prior work.
+If `story.md` already exists with content, summarize what is already known and only ask questions about the gaps. Do not discard prior work.
 
 ## Step 1: Restate and Gather
 
@@ -48,13 +48,13 @@ Organize questions into these categories. Only include a category if it has unan
 - What happens with empty input, invalid data, or partial state?
 - Are there known failure modes to handle?
 
-**AI / LLM specifics (include when the work item involves model calls, prompts, or AI output):**
+**AI / LLM specifics (include when the story involves model calls, prompts, or AI output):**
 - Is the output deterministic? If not, how is correctness verified?
 - What is the acceptable latency and token budget?
 - Are there prompt injection or hallucination risks to guard against?
 - Should outputs be validated structurally (schema), semantically (content), or both?
 
-**CLI / script specifics (include when the work item involves a CLI tool or script):**
+**CLI / script specifics (include when the story involves a CLI tool or script):**
 - What is the invocation command and key flags?
 - Where do test fixtures live?
 - What validation mode should smoke tests use?
@@ -63,13 +63,13 @@ Cap the total question count at nine. Prioritize questions whose answers most co
 
 ## Step 2: Draft Acceptance Criteria
 
-Convert answers into acceptance criteria. Write each criterion in active voice with a clear subject and observable outcome:
+Convert answers into acceptance criteria. Give each an ID and write it in Given/When/Then form:
 
-> Given `<precondition>`, when `<action>`, then `<observable result>`.
+> **AC-1** — Given `<precondition>`, when `<action>`, then `<observable result>`.
 
-or more concisely:
-
-> `<system>` `<does what>` when `<condition>`.
+IDs are permanent: tests, the test plan, and review findings reference them. When updating an existing
+story, keep existing IDs, append new criteria with the next number, and mark removed ones
+`~~AC-3~~ (removed: <reason>)` instead of renumbering.
 
 ## Step 3: Criteria Quality Gate
 
@@ -92,27 +92,35 @@ Standard DoD for this project:
 - [ ] All acceptance criteria pass (automated)
 - [ ] Full test suite passes (format, lint, types, tests)
 - [ ] Smoke test passes with artifacts
+- [ ] Independent review gate passes (0 open high/medium, pinned to the final code commit)
 - [ ] No regressions in related areas
 - [ ] Docs updated if user-facing behavior changed
 
-Add project-specific DoD items if the work item requires them (e.g. migration script tested, API contract versioned).
+Add project-specific DoD items if the story requires them (e.g. migration script tested, API contract versioned).
 
 ## Step 5: Write the Brief
 
-Write to `spec/features/<work-id>-<slug>/feature.md` if the folder exists, or produce inline if not. If `feature.md` already existed, update it in place — preserve any sections that are still accurate.
+Write to the story file if the folder exists, or produce inline if not. If it already existed, update it in
+place — preserve any sections that are still accurate. Follow `${CLAUDE_PLUGIN_ROOT}/templates/story.md`:
 
 ```markdown
-## Goal
-<one paragraph — observable outcome and who benefits>
+**Epic:** <E-nn or none> · **Area:** <area> · **Priority:** <P1–P3> · **Depends on:** <story IDs or none>
+
+## Story
+As a <who>, I want <what>, so that <why>.
 
 ## Acceptance Criteria
-- [ ] Given <precondition>, when <action>, then <observable result>
-- [ ] <...>
+- [ ] **AC-1** — Given <precondition>, when <action>, then <observable result>
+- [ ] **AC-2** — <...>
+
+## Definition of Ready
+<checklist from the template — left unticked; spec-linter ticks it>
 
 ## Definition of Done
-- [ ] All acceptance criteria pass (automated)
-- [ ] Full test suite passes
+- [ ] All ACs pass in automated tests that reference their AC IDs
+- [ ] Full checks pass (format, lint, types, tests)
 - [ ] Smoke test passes with artifacts
+- [ ] Independent review gate passes (0 open high/medium, pinned to the final code commit)
 - [ ] Docs updated if user-facing behavior changed
 - [ ] <any project-specific items>
 
@@ -122,9 +130,6 @@ Write to `spec/features/<work-id>-<slug>/feature.md` if the folder exists, or pr
 ## Out of Scope
 - <explicit exclusion>
 
-## Dependencies
-- <work item ID this depends on, or "none">
-
 ## Open Questions
 - <anything unresolved — remove section if empty>
 ```
@@ -133,7 +138,7 @@ Write to `spec/features/<work-id>-<slug>/feature.md` if the folder exists, or pr
 
 Count the acceptance criteria. If there are seven or more, the item is likely too large for a single session. Flag this explicitly:
 
-> This work item has N acceptance criteria and may be too large to implement in a single session. Consider using the feature-slicer skill to decompose it before proceeding.
+> This story has N acceptance criteria and may be too large to implement in a single session. Consider using the feature-slicer skill to decompose it before proceeding.
 
 If the item is well-sized (2–6 criteria), proceed to handoff.
 
@@ -141,6 +146,6 @@ If the item is well-sized (2–6 criteria), proceed to handoff.
 
 Recommend the appropriate next skill:
 - Use the feature-kickoff skill to create the full documentation folder (if not yet created)
-- Use the spec-linter skill to validate the brief before implementation
-- Use the implementation-phase skill if the folder already exists and the brief is complete
+- Use the spec-linter skill to check the Definition of Ready (moves the story to `Ready`)
+- Use the implementation-phase skill once the story is `Ready`
 - Use the feature-slicer skill if the sizing check flagged too many criteria

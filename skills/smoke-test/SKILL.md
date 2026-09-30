@@ -6,15 +6,15 @@ version: 1.1.0
 
 # Smoke Test
 
-Execute smoke tests for a work item and capture structured artifacts. Smoke tests run real subprocesses against actual entry points — not mocked calls.
+Execute smoke tests for a story and capture structured artifacts. Smoke tests run real subprocesses against actual entry points — not mocked calls.
 
 ## Setup
 
-Identify the work item ID from user request or context.
+Identify the story ID from user request or context.
 
 Read:
 1. `CLAUDE.md` — `smoke` command override
-2. `spec/features/<work-id>-<slug>/test-plan.md` — smoke scenarios
+2. `spec/stories/<story-id>-<slug>/test-plan.md` — smoke scenarios
 
 Resolve the smoke command:
 1. Use the `smoke` command from project `CLAUDE.md` if present
@@ -22,9 +22,9 @@ Resolve the smoke command:
 
 ## Execution
 
-Scope the smoke run to the work item when supported:
+Scope the smoke run to the story when supported:
 ```bash
-<smoke-command> --work-item <work-id>
+<smoke-command> --work-item <story-id>
 ```
 
 Run without `--work-item` for full smoke if scoping is not supported.
@@ -58,7 +58,7 @@ Quick lookup:
 
 ## Evidence Recording
 
-Write artifact paths and a brief summary to `spec/features/<work-id>-<slug>/test-results.md`:
+Write artifact paths and a brief summary to `spec/stories/<story-id>-<slug>/test-results.md`:
 
 ```markdown
 ## Smoke Run — <date>

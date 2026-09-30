@@ -10,7 +10,7 @@ Systematically resolve test or runtime failures. Emphasizes reproducibility, min
 
 ## Setup
 
-If the failure is tied to a specific work item, use the work-item-status skill first to confirm the current phase, recent activity, and any prior test results. This prevents re-investigating issues that are already documented.
+If the failure is tied to a specific story, use the work-item-status skill first to confirm the current status, recent activity, and any prior test results. This prevents re-investigating issues that are already documented.
 
 ## Command Resolution
 
@@ -65,11 +65,11 @@ If new failures appear, repeat from Step 1 for each new failure. If multiple fai
 
 ## Step 6: Document
 
-Update `spec/features/<work-id>-<slug>/status.md` if this was blocking a work item:
+Update `spec/stories/<story-id>-<slug>/status.md` if this was blocking a story:
 - Remove the blocker
 - Note the root cause in one sentence
 
-If the failure reveals a spec gap, update `feature.md` acceptance criteria.
+If the failure reveals a spec gap, update `story.md` acceptance criteria.
 
 ## Completion Criteria
 

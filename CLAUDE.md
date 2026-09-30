@@ -52,32 +52,53 @@ Add a `## Commands` section to the target repo's `CLAUDE.md` to override default
 - smoke: uv run python scripts/smoke.py
 ```
 
+## Work hierarchy
+
+Projects organize work as **Epic → Story → Task** (full model: `references/hierarchy.md` in this plugin):
+
+- **Epic** (optional) `E-<nn>` — an outcome grouping stories: `spec/epics/E-<nn>-<slug>/epic.md`
+- **Story** `S-<area>-<nnn>` — the unit that is tested, independently reviewed, and marked Done:
+  `spec/stories/S-<area>-<nnn>-<slug>/story.md`
+- **Task** — a checklist item in the story's `implementation.md`
+- Story status: `Backlog → Ready → In Progress → In Review → Done`
+- "Work item" means story. Legacy projects use `spec/features/<id>-<slug>/feature.md` — read them as
+  stories, keep their layout when writing, and suggest `scripts/migrate_spec.py` to migrate.
+
+A story is Done only when its independent review gate passes: 0 open high and 0 open medium findings,
+checked by `scripts/gate_check.py`. Only the user can waive a finding.
+
 ## Available skills
 
-This plugin provides 21 SDLC skills. Mention what you want to do and Claude
+This plugin provides 22 SDLC skills and one agent. Mention what you want to do and Claude
 will invoke the appropriate skill:
 
 - **session-start** — review project status and suggest priorities
-- **work-item-status** — concise status card for a specific work item
+- **work-item-status** — status card for a story, or rollup for an epic
 - **project-intake** — bootstrap a new project with SDLC structure
-- **qa-intake** — clarify and refine requirements for a work item
-- **backlog-builder** — convert specs into a structured stream backlog
-- **feature-kickoff** — create documentation folder for a work item
-- **feature-slicer** — decompose a large feature into shippable slices
-- **implementation-phase** — run the full test→implement→verify cycle
-- **implement-feature** — implement a single work item end-to-end
+- **qa-intake** — refine a story: statement, numbered Given/When/Then ACs
+- **backlog-builder** — convert specs into a backlog of epics and stories
+- **feature-kickoff** — create the documentation folder for a story or epic
+- **feature-slicer** — split an epic or oversized story into stories
+- **implementation-phase** — run one story through test→implement→commit→independent review
+- **implement-feature** — implement a story's acceptance criteria
 - **test-plan** — generate a test strategy from acceptance criteria
-- **write-tests** — write and execute tests for a work item
+- **write-tests** — write and execute tests for a story (test-first)
 - **test-runner** — run quality checks in quick or full mode
 - **smoke-test** — run smoke tests and capture artifacts
-- **ship-feature** — validate and finalize a work item for shipping
+- **ship-feature** — check the Definition of Done (incl. review gate) and mark a story Done
 - **debug-loop** — systematically resolve test or runtime failures
 - **failure-triage** — triage and prioritize multiple simultaneous failures
 - **architecture-review** — document architectural decisions and sync architecture docs
 - **docs-update** — update user-facing docs, changelog, and spec/index.md
-- **spec-linter** — review work item docs for completeness before implementation
+- **spec-linter** — check a story's Definition of Ready and move it to Ready
 - **flaky-test-hunter** — identify and stabilize flaky tests
 - **release-prep** — run all checks and prepare release notes
+- **independent-review** — review a story/epic with a fresh-context reviewer and apply the review gate
+
+Agent:
+
+- **independent-reviewer** — read-only reviewer launched by independent-review; never sees the
+  implementation conversation
 
 Plus a utility skill:
 

@@ -12,7 +12,7 @@ Bootstrap a new project repository and transform a rough idea into structured SD
 
 Verify the current directory is the target project, not the claude_home plugin directory. If `CLAUDE.md` already exists in the target repo, read it first and follow its instructions.
 
-## Phase 1: Bootstrap
+## Step 1: Bootstrap
 
 Create missing SDLC infrastructure. Do not overwrite existing files.
 
@@ -20,12 +20,13 @@ Create missing SDLC infrastructure. Do not overwrite existing files.
 - `spec/`
 - `spec/templates/`
 - `spec/decisions/`
-- `spec/features/`
+- `spec/epics/`
+- `spec/stories/`
 - `scripts/`
 
 **Files to create from templates (if absent):**
 
-Copy `${CLAUDE_PLUGIN_ROOT}/templates/project-claude-md.md` → `CLAUDE.md`, replacing `{{PROJECT_NAME}}` with the repo name. Users should customise the `## Commands` section for their stack.
+Copy `${CLAUDE_PLUGIN_ROOT}/templates/project-claude-md.md` → `CLAUDE.md`, replacing `{{PROJECT_NAME}}` with the repo name. Users should customise the `## Commands` section for their stack and, optionally, the `## Review` section (reviewer isolation and round limit).
 
 Create these spec stubs if absent:
 - `spec/index.md` — navigation hub (stub)
@@ -37,7 +38,7 @@ Create these spec stubs if absent:
 - `spec/smoke_registry.yaml` — registry of smoke scenarios
 - `scripts/smoke.py` — minimal smoke harness stub
 
-## Phase 2: Discovery
+## Step 2: Discovery
 
 Read the project idea from available sources: README, existing code, any brief the user has provided.
 
@@ -49,9 +50,9 @@ Read the project idea from available sources: README, existing code, any brief t
 - What does success look like at the first milestone?
 - Are there known non-goals or explicitly out-of-scope areas?
 
-## Phase 3: Documentation
+## Step 3: Documentation
 
-Create two key artifacts using the answers from Phase 2:
+Create two key artifacts using the answers from Step 2:
 
 **`spec/brief.md`** (1–2 pages):
 - Goal and problem statement
@@ -64,11 +65,11 @@ Create two key artifacts using the answers from Phase 2:
 - Links to brief, architecture (when it exists), decisions, backlog
 - One-line status for each linked artifact
 
-## Phase 4: Workflow Initialization
+## Step 4: Workflow Initialization
 
 - Ensure `spec/changelog.md` has an entry for this intake session.
 - Ensure `spec/decisions/` is ready to receive ADRs.
 
 ## Handoff
 
-List all files created and preserved. Note which `## Commands` values in `CLAUDE.md` need updating for this project's stack. Suggest three initial work items. Recommend the backlog-builder skill as the next step.
+List all files created and preserved. Note which `## Commands` values in `CLAUDE.md` need updating for this project's stack. Suggest one or two initial epics with a few stories each (the model is in `${CLAUDE_PLUGIN_ROOT}/references/hierarchy.md`). Recommend the backlog-builder skill as the next step.

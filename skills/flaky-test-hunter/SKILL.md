@@ -67,7 +67,7 @@ Write a test that verifies the stabilization holds:
 
 ## Step 5: Document Findings
 
-Update `spec/features/<work-id>-<slug>/test-results.md` (if this is tied to a work item):
+Update `spec/stories/<story-id>-<slug>/test-results.md` (if this is tied to a story):
 
 ```markdown
 ## Flaky Test Resolution — <date>

@@ -14,5 +14,11 @@ This is the project-level Claude configuration. It takes precedence over the glo
 - typecheck: uv run mypy src
 - smoke: uv run python scripts/smoke.py
 
+## Review
+
+- reviewer: subagent        # subagent | headless (separate `claude -p` process)
+- reviewer_model: inherit   # inherit, or a model name/alias for the reviewer
+- max_review_rounds: 3
+
 ## Notes
 - {{any project-specific guidelines, constraints, or conventions}}

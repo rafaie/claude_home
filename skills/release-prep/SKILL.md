@@ -51,17 +51,30 @@ All tests pass. No skipped tests that were previously passing.
 ```
 All smoke scenarios pass. Artifacts produced and valid. Smoke is a required gate — release preparation cannot complete without it.
 
-## Work Item Status Check
+## Story Status Check
 
-Before running quality gates, actively scan all work item status files:
+Before running quality gates, actively scan all story status files:
 
 ```bash
-grep -r "Current phase:" spec/features/*/status.md
+grep -rE "^\*\*(Status|Current phase):\*\*" spec/stories/*/status.md spec/features/*/status.md 2>/dev/null
 ```
 
-Flag any item whose phase is not `Shipped` or `Planned`. A work item stuck at "Implementation Complete", "Testing", or any in-flight phase means the release may be premature. For each flagged item, use the work-item-status skill to assess whether it should be shipped, deferred, or explicitly excluded from this release.
+Flag any story whose status is `In Progress` or `In Review` (legacy phases: map them per
+`${CLAUDE_PLUGIN_ROOT}/references/hierarchy.md`). An in-flight story means the release may be premature. For
+each flagged story, use the work-item-status skill to assess whether it should be finished, deferred, or
+explicitly excluded from this release.
 
-Do not proceed to quality gates until all in-flight items are either shipped or explicitly deferred with a recorded reason in their `status.md`.
+For every `Done` story, confirm it passed its review gate when it was shipped:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/gate_check.py" <story-id> --skip-freshness
+```
+
+(`--skip-freshness` because later stories legitimately changed the code after this one was reviewed.)
+A Done story with `NO_REVIEW` or `FAIL` must be reviewed or explicitly accepted by the user before release.
+
+Do not proceed to quality gates until all in-flight stories are either Done or explicitly deferred with a
+recorded reason in their `status.md`.
 
 ## Documentation Verification
 
@@ -70,7 +83,8 @@ After all gates pass:
 - [ ] `README.md` quickstart matches current behavior
 - [ ] `spec/changelog.md` has an entry for this release
 - [ ] `spec/index.md` is current (run the docs-update skill if stale)
-- [ ] All in-flight work items resolved (shipped or deferred with reason)
+- [ ] All in-flight stories resolved (Done or deferred with reason)
+- [ ] Every Done story passed its review gate (or the user accepted the exception)
 
 ## Release Notes
 
@@ -91,6 +105,7 @@ Generate a release summary from `spec/changelog.md`:
 - Types: ✓
 - Tests: ✓ (<n> passed)
 - Smoke: ✓ (<n> scenarios)
+- Reviews: ✓ (<n> stories, all gates passed)
 ```
 
 ## Completion Declaration

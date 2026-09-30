@@ -6,29 +6,31 @@ version: 1.0.0
 
 # Implement Feature
 
-Complete the implementation of a single work item end-to-end.
+Complete the implementation of a single story end-to-end.
 
 ## Setup
 
-Identify the work item ID (format: `S-<stream>-<nnn>`) from the user's request or context.
+Identify the story ID (format: `S-<area>-<nnn>`) from the user's request or context.
 
 Read in order:
 1. `CLAUDE.md` — command overrides and project constraints
-2. `spec/features/<work-id>-<slug>/feature.md` — goal and acceptance criteria
-3. `spec/features/<work-id>-<slug>/implementation.md` — approach and prior decisions
-4. `spec/features/<work-id>-<slug>/test-plan.md` — test cases and smoke specs
+2. `spec/stories/<story-id>-<slug>/story.md` — goal and acceptance criteria
+3. `spec/stories/<story-id>-<slug>/implementation.md` — approach and prior decisions
+4. `spec/stories/<story-id>-<slug>/test-plan.md` — test cases and smoke specs
 
 ## Implementation Process
 
 ### 1. Build the acceptance criteria checklist
 
-Convert each acceptance criterion from `feature.md` into a checkbox. Work through them one at a time.
+Use the ACs in `story.md` (`AC-1…n`) as the checklist, and the Tasks in `implementation.md` as the
+steps. If no tasks are listed, write ≤ ~5 before coding; needing more suggests the story should be split
+(feature-slicer). Work through the ACs one at a time.
 
 ### 2. Implement iteratively
 
-Make the minimal change to satisfy one criterion at a time. After each criterion:
+Make the minimal change to satisfy one AC at a time. After each AC:
 - Run the quick test command
-- Verify the criterion is met before moving to the next
+- Verify the AC is met, tick it in `story.md`, and tick finished tasks in `implementation.md`
 
 Add Google-style docstrings for:
 - New public APIs
@@ -68,13 +70,15 @@ After all criteria pass, update:
 - Smoke artifact paths
 
 **`status.md`**
-- Phase: `Implementation Complete`
+- Keep `**Status:** In Progress` (the independent review moves it to `In Review`)
+- History line: `<date> — implementation complete, all ACs met`
 - Remove any blockers that are resolved
 
 ## Failure Protocol
 
 - Check failures → use the debug-loop skill
-- User-facing behavior changes → use the docs-update skill after shipping
+- User-facing behavior changes → update docs before the review where practical (the reviewer checks
+  contract docs); otherwise use the docs-update skill during ship-feature
 
 ## Completion Criteria
 
@@ -83,3 +87,8 @@ All of the following must be true before declaring this skill complete:
 - [ ] Full test run passes
 - [ ] Smoke test passes with artifacts recorded
 - [ ] `implementation.md`, `test-results.md`, and `status.md` updated
+
+## Handoff
+
+Next: commit and run the independent-review skill — the implementation-phase skill does both. A story is
+not Done until the review gate passes and ship-feature confirms the Definition of Done.

@@ -29,7 +29,7 @@ Run when making incremental changes between milestones:
 2. **Lint** — `lint` command
 3. **Docstring validation** — `docstrings` command, if configured
 4. **Scoped tests** — `test_quick` command
-5. **Smoke** — `smoke` command with the current work item scoped if supported
+5. **Smoke** — `smoke` command with the current story scoped if supported
 
 Quick mode is the default. Skip to full mode when explicitly requested or at shipping milestones.
 

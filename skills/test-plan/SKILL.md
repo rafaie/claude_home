@@ -6,35 +6,40 @@ version: 1.0.0
 
 # Test Plan
 
-Generate a comprehensive test strategy from a work item's acceptance criteria. Produces `test-plan.md` that drives the write-tests skill.
+Generate a comprehensive test strategy from a story's acceptance criteria. Produces `test-plan.md` that drives the write-tests skill.
 
 ## Setup
 
-Identify the work item ID from the user's request or context.
+Identify the story ID from the user's request or context.
 
 Read:
 1. `CLAUDE.md` — project constraints and command overrides
-2. `spec/features/<work-id>-<slug>/feature.md` — acceptance criteria (required)
-3. `spec/features/<work-id>-<slug>/test-plan.md` — check for existing content
-4. `spec/features/<work-id>-<slug>/implementation.md` — approach, if available
+2. `spec/stories/<story-id>-<slug>/story.md` — acceptance criteria (required)
+3. `spec/stories/<story-id>-<slug>/test-plan.md` — check for existing content
+4. `spec/stories/<story-id>-<slug>/implementation.md` — approach, if available
+
+If the story is `Ready`, set `**Status:** In Progress` and record `**Base commit:**` (`git rev-parse HEAD`)
+in `status.md` unless already set.
 
 If `test-plan.md` already contains a Test Matrix with at least one test case, summarize what is already there and only fill gaps — do not overwrite existing test cases. Report what was preserved and what was added.
 
-## Phase 1: Input Gathering
+## Step 1: Input Gathering
 
-Map each acceptance criterion to one or more test cases. Identify:
-- Inputs and expected outputs for each criterion
+Map each acceptance criterion (`AC-1…n` in `story.md`) to one or more test cases. Identify:
+- Inputs and expected outputs for each AC
 - Boundary conditions and edge cases
 - External dependencies that need mocking or stubbing
 - Smoke scenarios that require real subprocess execution
 
-## Phase 2: Test Matrix
+## Step 2: Test Matrix
 
-Produce a matrix covering all four test types for each criterion:
+Produce a matrix with one row per AC ID, covering all four test types:
 
-| Criterion | Unit | Integration | E2E / Smoke | Negative |
+| AC | Unit | Integration | E2E / Smoke | Negative |
 |---|---|---|---|---|
-| <criterion text> | describe | describe | describe | describe |
+| AC-1 | describe | describe | describe | describe |
+
+Every AC must have a row — the independent reviewer checks AC-to-test coverage.
 
 **Test type definitions:**
 - **Unit** — pure logic, no I/O, fast
@@ -42,7 +47,7 @@ Produce a matrix covering all four test types for each criterion:
 - **E2E / Smoke** — real subprocess or external call, artifact-producing
 - **Negative** — invalid input, error paths, resource exhaustion
 
-## Phase 3: Mock Strategy
+## Step 3: Mock Strategy
 
 For each external dependency (database, API, filesystem, subprocess), decide:
 - **Mock** — when the dependency is unreliable or slow in CI
@@ -50,9 +55,10 @@ For each external dependency (database, API, filesystem, subprocess), decide:
 
 Document the decision and rationale.
 
-## Phase 4: Smoke Spec
+## Step 4: Smoke Spec
 
-Define at least one smoke scenario per acceptance criterion that involves an observable side effect:
+Define at least one smoke scenario per AC that involves an observable side effect:
+- AC IDs covered
 - Entry point command or API call
 - Input fixture or payload
 - Expected artifacts (`summary.json`, stdout, files created)
@@ -60,19 +66,20 @@ Define at least one smoke scenario per acceptance criterion that involves an obs
 
 ## Output
 
-Write the test plan to `spec/features/<work-id>-<slug>/test-plan.md`:
+Write the test plan to `spec/stories/<story-id>-<slug>/test-plan.md`:
 
 ```markdown
-# Test Plan — <Work Item ID>
+# Test Plan — <Story ID>
 
 ## Test Matrix
-<table from Phase 2>
+<table from Step 2>
 
 ## Mock Strategy
-<decisions from Phase 3>
+<decisions from Step 3>
 
 ## Smoke Scenarios
 ### Scenario 1: <name>
+- Covers: `<AC IDs>`
 - Command: `<command>`
 - Input: `<fixture path or description>`
 - Expected artifacts: `<list>`

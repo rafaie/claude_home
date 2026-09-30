@@ -10,18 +10,18 @@ Document architectural decisions and keep `spec/architecture.md` synchronized wi
 
 ## Setup
 
-Identify the work item ID from user request or context.
+Identify the story ID from user request or context.
 
 Read:
-1. `spec/features/<work-id>-<slug>/implementation.md` — key decisions section
-2. `spec/features/<work-id>-<slug>/feature.md` — decisions section
+1. `spec/stories/<story-id>-<slug>/implementation.md` — key decisions section
+2. `spec/stories/<story-id>-<slug>/story.md` — decisions section
 3. `spec/decisions/` — existing ADRs (to determine the next ADR number)
 4. `spec/architecture.md` — existing architecture doc (create stub if absent)
 5. Recent file diffs if available
 
 ## Part 1: Identify Architectural Decisions
 
-An ADR is warranted when any of the following occurred during the work item:
+An ADR is warranted when any of the following occurred during the story:
 - A significant design choice was made between two or more viable alternatives
 - A new external dependency was introduced
 - An existing integration boundary was changed
@@ -44,7 +44,7 @@ For each warranted decision, create `spec/decisions/ADR-<nnnn>-<slug>.md`:
 
 **Date:** <YYYY-MM-DD>
 **Status:** Accepted
-**Work Item:** <work-id>
+**Story:** <story-id>
 
 ## Context
 <Why this decision needed to be made. What problem does it solve?>
@@ -61,10 +61,10 @@ For each warranted decision, create `spec/decisions/ADR-<nnnn>-<slug>.md`:
 - <Negative consequence or trade-off accepted>
 
 ## Links
-- [feature.md](../features/<work-id>-<slug>/feature.md)
+- [story.md](../stories/<story-id>-<slug>/story.md)
 ```
 
-Link the ADR from the `## Decisions` section of `feature.md`:
+Link the ADR from the `## Decisions` section of `story.md`:
 ```
 - [ADR-<nnnn>: <Title>](../../../spec/decisions/ADR-<nnnn>-<slug>.md)
 ```
@@ -115,7 +115,7 @@ sequenceDiagram
 ## Completion Criteria
 
 - [ ] All warranted decisions documented as ADRs (or none were warranted)
-- [ ] ADRs linked from corresponding `feature.md` files
+- [ ] ADRs linked from corresponding `story.md` files
 - [ ] `spec/architecture.md` reflects current codebase
 - [ ] At least one diagram present and up to date (if any components exist)
 

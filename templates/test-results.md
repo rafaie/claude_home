@@ -1,4 +1,4 @@
-# Test Results — {{WORK_ITEM_ID}}
+# Test Results — {{STORY_ID}}
 
 ## Quick Test Runs
 

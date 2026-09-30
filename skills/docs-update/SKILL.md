@@ -6,16 +6,16 @@ version: 2.0.0
 
 # Docs Update
 
-Update user-facing documentation, the changelog, and `spec/index.md` after a work item is shipped. Combines what was previously split between docs-update and docs-index-refresh.
+Update user-facing documentation, the changelog, and `spec/index.md` after a story is shipped. Combines what was previously split between docs-update and docs-index-refresh.
 
 ## Setup
 
-Identify the work item ID from user request or context.
+Identify the story ID from user request or context.
 
 Read:
-1. `spec/features/<work-id>-<slug>/feature.md` — acceptance criteria and scope
-2. `spec/features/<work-id>-<slug>/implementation.md` — files changed and decisions
-3. `spec/features/<work-id>-<slug>/test-results.md` — smoke evidence
+1. `spec/stories/<story-id>-<slug>/story.md` — acceptance criteria and scope
+2. `spec/stories/<story-id>-<slug>/implementation.md` — files changed and decisions
+3. `spec/stories/<story-id>-<slug>/test-results.md` — smoke evidence
 4. `README.md` — current user-facing documentation
 5. `spec/index.md` — current navigation hub
 
@@ -38,7 +38,7 @@ For each user-visible change:
 - Update the quickstart or usage section to reflect new behavior
 - Update any code examples that are now incorrect
 - Add new examples for new features
-- Remove or mark deprecated any features removed in this work item
+- Remove or mark deprecated any features removed in this story
 
 Keep examples short and runnable.
 
@@ -46,14 +46,14 @@ Keep examples short and runnable.
 
 Update these files as applicable:
 - `spec/docstrings.md` — if docstring standards changed
-- Any other spec file whose content is now stale due to this work item
+- Any other spec file whose content is now stale due to this story
 
 ### Add changelog entry
 
 Prepend to `spec/changelog.md`:
 
 ```markdown
-## <version or date> — <Work Item ID>
+## <version or date> — <Story ID>
 
 ### Added
 - <new capability>
@@ -74,7 +74,8 @@ Use only the sections that apply. Omit empty sections.
 
 The index is a living navigation hub, not a one-time document. Prioritize functional links, current state, and concise descriptions.
 
-Scan all `spec/features/*/status.md` files and `spec/decisions/` before writing.
+Scan all `spec/epics/*/epic.md`, `spec/stories/*/status.md` (and legacy `spec/features/*/status.md`),
+and `spec/decisions/` before writing.
 
 Rebuild or update these sections:
 
@@ -84,17 +85,18 @@ One paragraph: goal, current maturity, key constraints.
 ### Current Status
 3–5 bullet points reflecting today's state — working, in progress, blocked.
 
-### Work Items
+### Stories
+
+Group stories by epic, then standalone stories. Show each story's status and review state:
 
 ```markdown
-## In Progress
-- [S-core-001 — Title](features/S-core-001-slug/feature.md) — Phase: Implementation
+## [E-03 — Auth hardening](epics/E-03-auth-hardening/epic.md) — In Progress (2/5 Done)
+- [S-auth-004 — Title](stories/S-auth-004-slug/story.md) — Done ✓ (r1 PASS)
+- [S-auth-005 — Title](stories/S-auth-005-slug/story.md) — In Review (r2 FAIL: 1H)
+- [S-auth-006 — Title](stories/S-auth-006-slug/story.md) — Ready · P1
 
-## Planned
-- [S-core-002 — Title](features/S-core-002-slug/feature.md) — P1
-
-## Shipped
-- [S-core-000 — Title](features/S-core-000-slug/feature.md) — ✓
+## Standalone stories
+- [S-cli-002 — Title](stories/S-cli-002-slug/story.md) — Backlog · P2
 ```
 
 ### Decisions
@@ -109,12 +111,12 @@ Link to `spec/brief.md`, `spec/backlog.md`, `spec/changelog.md`.
 ### Verification
 Before writing, verify every link target exists. Mark broken links `(pending)` rather than leaving them dead.
 
-## Part 3: Update Work Item Status
+## Part 3: Update Story Status
 
-Update `spec/features/<work-id>-<slug>/status.md`:
+Update `spec/stories/<story-id>-<slug>/status.md`:
 - Note documentation status: `Docs: updated`
 
-Update `spec/features/<work-id>-<slug>/implementation.md`:
+Update `spec/stories/<story-id>-<slug>/implementation.md`:
 - Add documentation files changed to the files-changed list
 
 ## Handoff

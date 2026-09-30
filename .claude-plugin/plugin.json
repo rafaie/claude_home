@@ -1,11 +1,17 @@
 {
   "name": "claude-home",
-  "description": "SDLC skill pack for Claude Code — 23 model-invoked skills covering intake, planning, implementation, testing, documentation, and release",
-  "version": "1.0.0",
+  "description": "SDLC skill pack for Claude Code \u2014 23 model-invoked skills and an independent reviewer agent covering intake, planning (epics and stories), implementation, independent review, testing, documentation, and release",
+  "version": "2.0.0",
   "author": {
     "name": "Mostafa Rafaie",
     "email": "mostafa.rafaie@gmail.com"
   },
   "license": "Apache-2.0",
-  "keywords": ["sdlc", "workflow", "skills", "development"]
+  "keywords": [
+    "sdlc",
+    "workflow",
+    "skills",
+    "development",
+    "code-review"
+  ]
 }

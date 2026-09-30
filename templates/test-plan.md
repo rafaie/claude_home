@@ -1,10 +1,10 @@
-# Test Plan — {{WORK_ITEM_ID}}
+# Test Plan — {{STORY_ID}}
 
 ## Test Matrix
 
-| Criterion | Unit | Integration | E2E / Smoke | Negative |
+| AC | Unit | Integration | E2E / Smoke | Negative |
 |---|---|---|---|---|
-| {{criterion}} | | | | |
+| AC-1 | | | | |
 
 ## Mock Strategy
 {{to be filled by the test-plan skill}}
@@ -12,6 +12,7 @@
 ## Smoke Scenarios
 
 ### Scenario 1: {{name}}
+- **Covers:** {{AC IDs}}
 - **Command:** `{{command}}`
 - **Input:** `{{fixture path or description}}`
 - **Expected artifacts:** `{{list}}`
