@@ -28,6 +28,11 @@ Read in parallel:
 5. `status.md` — status, blockers, base commit, review line, history
 6. `evidence/README.md` — smoke artifact paths
 
+Check whether the recorded checks are still valid for the current code:
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/run_checks.py" --verify <story-id>
+```
+
 If `reviews/` exists, run the gate:
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/gate_check.py" <story-id>
@@ -56,7 +61,7 @@ Blockers:   <from status.md, or "none">
 ### Progress
 Tasks:        <done>/<total> from implementation.md
 Test plan:    <every AC covered / missing ACs: …>
-Last run:     <result from test-results.md, or "not run">
+Checks:       <run_checks.py --verify <story-id>: "current and passing" or its reasons, or "not run">
 Smoke:        <passed / failed / not run> — <artifact path if available>
 Commits:      <n> since base <short-sha>
 

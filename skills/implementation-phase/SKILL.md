@@ -1,7 +1,7 @@
 ---
 name: implementation-phase
 description: This skill should be used when the user explicitly asks to "run the full implementation cycle", "run implementation phase for", "do all the steps for", "take this story through review", or wants to orchestrate the complete test-plan → write-tests → implement-feature → independent review sequence end-to-end for a single story (work item). Do NOT use this skill when the user asks to implement a feature directly — use the implement-feature skill for that — or for several stories at once — use the story-runner skill for that.
-version: 2.0.0
+version: 2.1.0
 ---
 
 # Implementation Phase
@@ -35,9 +35,11 @@ If `**Status:**` is `Backlog`, use the spec-linter skill. Continue only when it 
 
 When moving from `Ready` to `In Progress`:
 - If on the default branch, create `story/<story-id>-<slug>` first.
-- Set `**Status:** In Progress` and `**Base commit:**` to `git rev-parse HEAD` (only if it is
-  `not started`; never overwrite an existing base).
-- Add a History line.
+- Record the transition (sets the status, the base commit — never overwriting an existing one — the
+  History line, and the backlog/epic rows):
+  ```bash
+  python3 "${CLAUDE_PLUGIN_ROOT}/scripts/story_state.py" start <story-id>
+  ```
 
 ## Partial Completion Detection
 
@@ -45,7 +47,7 @@ When moving from `Ready` to `In Progress`:
 |---|---|
 | 1 test-plan | `test-plan.md` Test Matrix has a row for every AC ID in `story.md` |
 | 2 write-tests | `test-results.md` has a Quick Test Run entry |
-| 3 implement-feature | every AC in `story.md` is checked and `test-results.md` has a passing Full Test Run |
+| 3 implement-feature | every AC in `story.md` is checked and `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/run_checks.py" --verify <story-id>` passes |
 | 4 commit | `git status --porcelain` shows no changes outside `spec/`, `artifacts/` |
 | 5 review | `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/gate_check.py" <story-id>` exits 0 |
 
@@ -65,7 +67,8 @@ Use the write-tests skill. **Gate:** a test exists for every AC; tests run witho
 errors; pre-existing tests still pass. New tests for not-yet-built behavior are expected to fail (red).
 
 ### Step 3: Implement
-Use the implement-feature skill. **Gate:** all ACs checked, full checks pass, smoke passes with artifacts.
+Use the implement-feature skill. **Gate:** all ACs checked, and a full check run recorded with
+`run_checks.py --mode full --record <story-id>` passes (format, lint, types, tests, smoke with artifacts).
 
 ### Step 4: Commit
 Commit the story's code, tests, and spec updates in one commit:
@@ -85,7 +88,7 @@ Use the independent-review skill (scope `story`). **Gate:** `gate_check.py` pass
 **Fix loop** when the gate fails:
 1. Fix each open high/medium finding with the smallest change — use implement-feature for behavior gaps
    and debug-loop for failures. Add or fix tests so each fix is covered.
-2. Re-run full checks.
+2. Re-run and record the full checks: `run_checks.py --mode full --record <story-id>`.
 3. Commit: `<story-id>: address review r<N> (F<ids>)`.
 4. Run the independent-review skill again — a new round with a fresh reviewer.
 

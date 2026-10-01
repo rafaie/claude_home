@@ -56,9 +56,17 @@ do this)" — the test plan and the review reference AC IDs.
 
 ## On Pass
 
-If the story's status is `Backlog`, set `**Status:** Ready`, tick the Definition of Ready boxes in
-`story.md`, and add a History line: `<date> — Definition of Ready passed (spec-linter)`. Update the
-story's status in `spec/backlog.md` and in its epic's table, if any.
+If the story's status is `Backlog`, record the transition:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/story_state.py" ready <story-id>
+```
+
+It re-checks the mechanical parts of the Definition of Ready (at least two numbered ACs; every dependency
+Done or Split), then ticks the Definition of Ready, sets `**Status:** Ready`, adds the History line, and
+updates the backlog and epic rows. If a dependency is not Done but the user has explicitly agreed it is
+non-blocking, pass `--allow-dep <ID>`; never pass it on your own judgment. If it refuses, report the
+reason as a lint failure.
 
 ## Output Format
 

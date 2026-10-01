@@ -41,7 +41,9 @@ After a successful run, verify all of the following exist under `artifacts/smoke
 | `stderr.txt` | Full standard error |
 | `timing.json` | Per-scenario execution times |
 
-If any artifact is missing, the run is incomplete — do not treat it as a pass.
+If any artifact is missing, the run is incomplete — do not treat it as a pass. `run_checks.py` (used by
+the test-runner and ship-feature skills) applies this same artifact check automatically; use this skill
+for scoped runs and detailed smoke triage.
 
 ## Failure Classification
 

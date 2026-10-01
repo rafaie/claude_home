@@ -36,16 +36,20 @@ A story may exist without an epic. Epics never contain code directly — only st
 Backlog → Ready → In Progress → In Review → Done
 ```
 
-| Status | Entered when | Set by |
+| Status | Entered when | Set by (skill → `scripts/story_state.py`) |
 |---|---|---|
-| Backlog | Story folder created | feature-kickoff |
-| Ready | Definition of Ready passes | spec-linter |
-| In Progress | Work starts; `Base commit` recorded | implementation-phase / test-plan / implement-feature |
-| In Review | Code committed; independent review requested or in fix loop | independent-review |
-| Done | Definition of Done passes (incl. review gate) | ship-feature |
+| Backlog | Story folder created | feature-kickoff (from the template) |
+| Ready | Definition of Ready passes | spec-linter → `story_state.py ready` |
+| In Progress | Work starts; `Base commit` recorded | implementation-phase → `story_state.py start` |
+| In Review | Code committed; independent review recorded (incl. fix loop) | independent-review → `story_state.py review` |
+| Done | Definition of Done passes (incl. review gate and recorded checks) | ship-feature → `story_state.py done` |
 
 `Split` is a terminal status outside the workflow: the story was replaced by the stories listed in its
-`Superseded by:` line (set by feature-slicer).
+`Superseded by:` line (feature-slicer → `story_state.py split`).
+
+Status changes are made by `scripts/story_state.py`, never by editing `status.md` by hand: it updates
+`status.md` (fields and History), the story's row in `spec/backlog.md`, and its row in the epic, and it
+refuses a transition whose entry conditions are not met.
 
 Blocking is a flag, not a status: `**Blockers:**` in `status.md` is `none` or a list of reasons.
 Steps such as "test plan written" or "tests written" are progress *within* In Progress, recorded in
@@ -58,9 +62,10 @@ Epic status is derived: `Backlog` (no story started) → `In Progress` (any stor
 
 | Gate | Checks | Enforced by |
 |---|---|---|
-| **Definition of Ready** | Story statement clear; every AC has an ID and is testable; dependencies Done or non-blocking; out-of-scope listed; no blocking open questions; sized for one focused session | spec-linter |
-| **Review gate** | Latest independent review has 0 open high and 0 open medium findings (after user waivers), no AC `not_met`/`partial`, and the review is pinned to the current code | `scripts/gate_check.py` |
-| **Definition of Done** | All ACs pass (tests reference AC IDs); full checks pass; smoke passes; review gate passes; docs updated if user-facing | ship-feature |
+| **Definition of Ready** | Story statement clear; every AC has an ID and is testable; dependencies Done or non-blocking; out-of-scope listed; no blocking open questions; sized for one focused session | spec-linter (judgment) + `story_state.py ready` (≥ 2 numbered ACs, dependencies Done) |
+| **Review gate** | Latest independent review has 0 open high and 0 open medium findings (after user waivers and the severity-change rules), no AC `not_met`/`partial`, and the review is pinned to the current code | `scripts/gate_check.py` |
+| **Checks** | Format, lint, typecheck, docstrings (if configured), full tests, and smoke — with complete smoke artifacts — pass on the current code | `scripts/run_checks.py` (records and verifies results) |
+| **Definition of Done** | All ACs ticked; review gate passes; recorded full checks pass on the current code; docs updated if user-facing | ship-feature + `story_state.py done` |
 
 ## Runs
 

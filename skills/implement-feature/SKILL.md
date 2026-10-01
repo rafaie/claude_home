@@ -48,18 +48,19 @@ Do not add docstrings that merely restate the function name.
 
 ### 3. Run milestone checks
 
-Run full checks (lint + format + typecheck + full tests + smoke) after:
+Run the full checks after:
 - Completing the final acceptance criterion
 - Any change to a core or shared module
 - Any CLI, API, schema, or externally visible behavior change
 
-### 4. Verify smoke test
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/run_checks.py" --mode full --record <story-id>
+```
 
-Run the smoke-test skill. Confirm required artifacts exist:
-- `artifacts/smoke/<run-id>/summary.json`
-- `artifacts/smoke/<run-id>/stdout.txt`
-- `artifacts/smoke/<run-id>/stderr.txt`
-- `artifacts/smoke/<run-id>/timing.json`
+It runs format, lint, typecheck, docstrings (if configured), the full tests, and smoke in order, stops at
+the first failure, validates the smoke artifacts, and records the result in `test-results.md` and
+`evidence/checks.json`. Never write check results by hand. On failure, use the debug-loop skill and run
+the checks again.
 
 ## Documentation
 
@@ -70,14 +71,15 @@ After all criteria pass, update:
 - List of files changed with one-line descriptions
 - Key decisions made
 
-**`test-results.md`**
-- Commands run and their outcomes
-- Smoke artifact paths
+**`test-results.md`** — the check results are already recorded by `run_checks.py --record`; add only
+notes the script cannot know (e.g. which tests were red before the implementation).
 
-**`status.md`**
-- Keep `**Status:** In Progress` (the independent review moves it to `In Review`)
-- History line: `<date> — implementation complete, all ACs met`
-- Remove any blockers that are resolved
+**`status.md`** — keep `**Status:** In Progress` (the independent review moves it to `In Review`), and add
+the History line with:
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/story_state.py" note <story-id> "implementation complete, all ACs met"
+```
+Clear resolved blockers with `story_state.py unblock <story-id>`.
 
 ## Failure Protocol
 
@@ -89,9 +91,8 @@ After all criteria pass, update:
 
 All of the following must be true before declaring this skill complete:
 - [ ] All acceptance criteria checked off
-- [ ] Full test run passes
-- [ ] Smoke test passes with artifacts recorded
-- [ ] `implementation.md`, `test-results.md`, and `status.md` updated
+- [ ] `run_checks.py --verify <story-id>` passes (a recorded full run, still valid for the current code)
+- [ ] `implementation.md` and `status.md` updated
 
 ## Handoff
 

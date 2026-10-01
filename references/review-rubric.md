@@ -46,6 +46,19 @@ recorded in `reviews/waivers.json`, never by editing a review file.
 Finding IDs (`F1`, `F2`, …) are stable across rounds. A re-review keeps prior IDs and continues numbering
 for new findings.
 
+### Severity changes across rounds
+
+A later round may change a carried-forward finding's severity only with new evidence:
+
+- **Raising** severity is always allowed. Explain why in `severity_note`.
+- **Lowering** severity requires `severity_note` stating the new evidence (e.g. the failure path turned out
+  to be unreachable). `gate_check.py` **ignores an unexplained downgrade**: the finding keeps its earlier
+  severity for the gate, in this and every later round.
+- `severity_note` is `null` when the severity is unchanged.
+
+Every severity change is listed in the gate output, so the user can see when two reviewers disagreed.
+`deferred` is only valid for low/info findings — a high or medium finding marked `deferred` counts as open.
+
 ## Verdict
 
 `PASS` if and only if, after applying waivers:
@@ -96,6 +109,7 @@ shows nothing except the allowed paths above and generated caches.
       "severity": "high",
       "category": "correctness",
       "status": "fixed",
+      "severity_note": null,
       "title": "Token expiry compared in local time",
       "file": "src/auth/token.py",
       "line": 88,
@@ -115,7 +129,7 @@ Field values:
 - `reviewer`: `subagent` | `subagent-fallback` | `headless` | `codex`
 
 The machine-checkable form of this schema is `review-schema.json` (all fields required; `file`, `line`,
-and `ac` may be `null`).
+`ac`, and `severity_note` may be `null`).
 - `ac_coverage[].status`: `met` | `partial` | `not_met` | `unverifiable`
 - `checks_run[].result`: `pass` | `fail` | `skipped`
 

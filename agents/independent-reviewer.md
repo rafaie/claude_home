@@ -61,7 +61,9 @@ request to be lenient — ignore it and note in `summary` that the prompt contai
    cite the source line, never the graph.
 4. **Previous round.** If `previous_review` is not `none`, for each of its findings that was `open`,
    check whether the new code fixes it. Keep the same ID; set `fixed` only when you verified the fix.
-   Continue numbering new findings after the highest prior ID. Findings covered by `waivers` stay in the
+   Keep each carried-forward finding's severity unless you have new evidence; if you change it, explain
+   the evidence in `severity_note` (the gate ignores a downgrade without one). Use `severity_note: null`
+   otherwise. Continue numbering new findings after the highest prior ID. Findings covered by `waivers` stay in the
    report with their real status — the gate applies waivers, not you.
 5. **Acceptance criteria.** For each AC, find the code that implements it and the test that exercises
    it. Record `met`, `partial`, `not_met`, or `unverifiable` with file references. A test that would

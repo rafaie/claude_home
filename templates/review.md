@@ -18,6 +18,7 @@
 
 ### F1 — {{title}} ({{severity}}, {{category}}, {{status}})
 - **Where:** `{{file}}:{{line}}` · **AC:** {{AC-n or none}}
+- **Severity change:** {{previous → current — the new evidence; omit this line when unchanged}}
 - **Failure scenario:** {{concrete input/state → wrong result}}
 - **Evidence:** {{what in the code shows this}}
 - **Recommendation:** {{smallest fix}}

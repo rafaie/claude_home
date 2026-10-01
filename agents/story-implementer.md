@@ -26,9 +26,13 @@ orchestrator stays small; everything you need is in the files named in your task
 3. **Do not run the review or ship steps.** Do not launch agents, do not run the independent-review or
    ship-feature skills, and do not set the story status to `In Review` or `Done`. The runner does that.
 4. **Commit, never push.** No `git push`, no rebase or reset of existing commits, no branch switching.
-5. **Tests must be real.** A test must fail if the behavior it covers is removed. Never weaken, skip,
+5. **Check results come only from `run_checks.py`.** Run
+   `python3 <plugin_root>/scripts/run_checks.py --mode full --record <story_folder>` before you commit;
+   it records the result in `test-results.md` and `evidence/checks.json`. Never write check results by
+   hand, and copy your reply's `CHECKS` line from its output.
+6. **Tests must be real.** A test must fail if the behavior it covers is removed. Never weaken, skip,
    or delete a test to make checks pass; if a test is wrong, fix it and say why in your notes.
-6. If you are blocked (missing information, a failing check you cannot fix, a story that is too large),
+7. If you are blocked (missing information, a failing check you cannot fix, a story that is too large),
    stop and report `BLOCKED` with the reason. Do not guess at requirements.
 
 ## Using the knowledge graph
@@ -61,7 +65,8 @@ If the story has more than ~5 tasks or its ACs keep growing, stop and report
    covers it.
 3. If you believe a finding is wrong, do **not** change code for it. Report it as a dispute with your
    evidence; the runner asks the user.
-4. Run full checks (format, lint, typecheck, full tests, smoke). Fix anything you broke.
+4. Run and record the full checks: `python3 <plugin_root>/scripts/run_checks.py --mode full --record
+   <story_folder>`. Fix anything you broke and re-run until it passes.
 5. Commit: `<story-id>: address review r<N> (F<ids>)`.
 
 Low findings are not your job unless the fix is a one-line change inside code you are already touching.
@@ -74,7 +79,7 @@ End with exactly this block and nothing after it:
 RESULT: COMMITTED | BLOCKED | NO_CHANGES
 COMMIT: <full sha or none>
 ACS: <AC-1 ✓, AC-2 ✓, …>
-CHECKS: <format ✓ lint ✓ types ✓ tests ✓ smoke ✓ — or which failed>
+CHECKS: <the overall result and failing steps exactly as run_checks.py printed them>
 FIXED: <finding IDs, or none>          (fix mode)
 DISPUTED: <F<n> — one-line evidence; …, or none>   (fix mode)
 BLOCKER: <reason or none>

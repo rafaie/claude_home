@@ -1,7 +1,7 @@
 ---
 name: release-prep
 description: This skill should be used when the user asks to "prepare release", "run release checks", "ready to release", "prep for release", "generate release notes", or wants to validate that all quality gates pass and documentation is current before cutting a release.
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Release Prep
@@ -10,46 +10,36 @@ Run all quality gates and prepare documentation before cutting a release.
 
 ## Command Resolution
 
-Read `CLAUDE.md` for command overrides. Defaults:
-- Format: `uv run ruff format . --check`
-- Lint: `uv run ruff check .`
-- Typecheck: `uv run mypy src`
-- Test (full): `uv run pytest -q`
-- Smoke: `uv run python scripts/smoke.py`
+`run_checks.py` reads the commands from the project `CLAUDE.md` (`## Commands`) and falls back to the
+defaults listed in the test-runner skill.
 
 ## Quality Gate Sequence
 
-Run checks in this order. Stop and report if any gate fails — do not skip ahead.
+Run all five gates with one command — it runs them in this order, stops at the first failure, and
+validates the smoke artifacts:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/run_checks.py" --mode full
+```
+
+Report its output as-is; never restate a result it did not produce. The gates it runs, and what each
+failure means:
 
 ### Gate 1: Formatting
-```bash
-<format command>
-```
 All files must be correctly formatted. Run the formatter (without `--check`) if there are formatting issues, then re-check.
 
 ### Gate 2: Linting
-```bash
-<lint command>
-```
 Zero lint errors. Warnings are acceptable if they were pre-existing.
 
 ### Gate 3: Type Checking
-```bash
-<typecheck command>
-```
 Zero type errors. New errors introduced since the last release must be fixed.
 
 ### Gate 4: Full Test Suite
-```bash
-<test_full command>
-```
 All tests pass. No skipped tests that were previously passing.
 
 ### Gate 5: Smoke Tests
-```bash
-<smoke command>
-```
-All smoke scenarios pass. Artifacts produced and valid. Smoke is a required gate — release preparation cannot complete without it.
+All smoke scenarios pass, and the run produced complete artifacts (`summary.json`, `cases/`, `stdout.txt`,
+`stderr.txt`, `timing.json`). Smoke is a required gate — release preparation cannot complete without it.
 
 ## Story Status Check
 

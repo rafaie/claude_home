@@ -1,7 +1,7 @@
 ---
 name: story-runner
 description: This skill should be used when the user asks to "run S-auth-004 S-auth-005 S-api-011", "run these stories", "run epic E-03", "run the next 5 ready stories", "run all ready P1 stories", "resume the run", "resume run R-2026-09-30-a", or wants several stories (work items) taken end to end — ready check, build, independent review, done — one after another with gates between them.
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Story Runner
@@ -18,8 +18,10 @@ References:
 - The independent-review skill — reviews each story; its integrity rules apply here unchanged
 - `${CLAUDE_PLUGIN_ROOT}/references/graphify.md` — optional knowledge graph (`GR` = `scripts/graph.py`)
 
-Below, `RS` means `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/run_state.py"` and `GC` means
-`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/gate_check.py"`.
+Below, `RS` means `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/run_state.py"`, `GC` means
+`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/gate_check.py"`, and `CHECKS` means
+`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/run_checks.py"`. Story status changes go through
+`scripts/story_state.py`, called by the skills each gate uses — never edit status files by hand.
 
 ## Roles
 
@@ -70,8 +72,9 @@ Use `inline` only for small runs or when subagents are unavailable; it fills the
    `DOCS_PASS: needed`, run the graphify skill here in the main session (`/graphify <graph_path> --update`),
    then `graph.py mark-docs`. If the graph is `off` or `unavailable`, continue without it (a
    `graphify: required` project stops here instead).
-3. Baseline: run the quick test command once. If it fails, stop: a red baseline makes every review
-   ambiguous. Offer the debug-loop or failure-triage skill.
+3. Baseline: `CHECKS --mode quick`. If any step fails, stop and show which: a red baseline makes every
+   review ambiguous, and the ship gates will require those checks to pass anyway. Offer the debug-loop or
+   failure-triage skill, or let the user fix the baseline first.
 4. Show the plan table, the branch it will use, the reviewer and implementer modes, the graph state,
    and the max review rounds, then **ask the user to approve the run** (they may reorder or drop stories — re-run `plan`
    with the explicit list). Do not start without approval.
@@ -125,6 +128,8 @@ graph_report: <absolute path to GRAPH_REPORT.md if the graph is enabled; otherwi
 Then verify for yourself — do not rely on the reply alone:
 - `git log -1 --format=%H` is a new commit and `git status --porcelain` is clean outside spec/Markdown.
 - Every AC in `story.md` is checked.
+- `CHECKS --verify <id>` passes — the implementer recorded a passing full check run for exactly the code
+  it committed. If it fails, send the story back to the implementer (fix the checks) before reviewing.
 
 On success: `RS set … --gate review --commit <sha>`.
 On `BLOCKED`: `--state blocked --blocked "<reason>"`; for "needs split", recommend feature-slicer in the
@@ -158,8 +163,9 @@ Resume according to the answer (`--run-status running`).
 
 ### Gate 4 — Definition of Done (`gate: dod`)
 
-Run the ship-feature skill for the story. It re-checks the review gate, runs full checks, updates docs,
-sets the story `Done`, and commits `<id>: done`.
+Run the ship-feature skill for the story. It re-checks the review gate, updates docs, runs and records
+the full checks after the last edit, and marks the story Done with `story_state.py done` — which refuses
+unless the gate and the checks pass on the current code — then commits `<id>: done`.
 
 On success: `RS set … --gate done --state done --commit <sha>`, then refresh the code graph so the next
 story sees this one (`graph.py refresh`; defer any `DOCS_PASS` to the run close). If ship-feature
@@ -172,21 +178,25 @@ If `pause_between_stories` is true, ask before starting the next story.
 When every story is `done`, `blocked`, `escalated`, or `skipped`:
 
 1. `RS set <run-id> --run-status closing --close-gate checks`. Refresh the graph, including a docs pass
-   if `DOCS_PASS: needed` (main session), so the integration reviewer sees specs and reviews too. Run the test-runner skill in full mode on
-   the run branch. Fix regressions between stories with the debug-loop skill; commit as
-   `run <run-id>: fix integration`.
+   if `DOCS_PASS: needed` (main session), so the integration reviewer sees specs and reviews too. Run and record the full checks on the run
+   branch: `CHECKS --mode full --record <run-id>`. Fix regressions between stories with the debug-loop
+   skill; commit as `run <run-id>: fix integration` and re-run the checks.
 2. **Integration review** — if two or more stories reached `done`:
    - If every story in the run belongs to one epic and that epic is now fully Done, use the
      independent-review skill with scope `epic` (it reviews into the epic folder).
    - Otherwise use scope `range`: target folder `spec/runs/<run-id>/`, base = the run's `base`,
      head = `HEAD`, `spec_paths` = the `story.md` of every done story in the run.
-   - `RS set <run-id> --close-gate review --close-review "r<N> PASS|FAIL …"`. A failing integration
+   - Record each round with `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/story_state.py" review <run-id>` (for
+     follow-ups; the independent-review skill does this in its Step 7) and
+     `RS set <run-id> --close-gate review --close-review "r<N> PASS|FAIL …"`. A failing integration
      review uses the same fix loop — implementer `mode: fix` with `story_id: <run-id>`,
      `story_folder: spec/runs/<run-id>/`, the run's review file, and `spec_paths` — which commits as
      `<run-id>: address review r<N> (…)`. The same escalation rule applies.
 3. For each epic that became fully Done but was not reviewed in step 2, recommend the independent-review
    skill with scope `epic`.
-4. Write `spec/runs/<run-id>/run-report.md` (template below), then
+4. Confirm the closing checks still hold for the final code: `CHECKS --verify <run-id>` (re-run
+   `CHECKS --mode full --record <run-id>` if an integration fix changed code). Then write
+   `spec/runs/<run-id>/run-report.md` (template below), then
    `RS set <run-id> --run-status done --close-gate done` and commit as `run <run-id>: done`.
 5. Do not push, merge, or open a PR unless the user asks. Suggest it.
 

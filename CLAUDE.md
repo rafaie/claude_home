@@ -71,8 +71,11 @@ An optional **knowledge graph** (graphify, `references/graphify.md`) gives imple
 map of the code via `scripts/graph.py`; it is never evidence and never blocks a gate unless the project
 sets `graphify: required`.
 
-A story is Done only when its independent review gate passes: 0 open high and 0 open medium findings,
-checked by `scripts/gate_check.py`. Only the user can waive a finding.
+A story is Done only when its independent review gate passes (0 open high and 0 open medium findings,
+checked by `scripts/gate_check.py`) and a full check run recorded by `scripts/run_checks.py` passes on the
+current code. Only the user can waive a finding. Status changes go through `scripts/story_state.py`,
+which refuses transitions whose conditions are not met; check results are only ever written by
+`run_checks.py`.
 
 ## Available skills
 

@@ -89,7 +89,7 @@ def build_prompt(task_prompt: str, checks_file: Path) -> str:
 You are running in a read-only sandbox and cannot write files. Do not try to write `output_json` or
 `output_md`. Your final message must be only the review JSON object for `output_json`, matching the
 provided output schema, with `"reviewer": "codex"`. Use `null` for `file`, `line`, or `ac` when a finding
-has none.
+has none, and `null` for `severity_note` unless you changed a carried-forward finding's severity.
 
 The test command has already been run outside the sandbox; its output is in `{checks_file}`. Read it
 instead of running the test command. Failures caused by the read-only sandbox are not findings. The
@@ -131,6 +131,7 @@ def render_md(r: dict) -> str:
         lines += [
             f"### {f['id']} — {f['title']} ({f['severity']}, {f['category']}, {f['status']})",
             f"- **Where:** {where} · **AC:** {f.get('ac') or 'none'}",
+            *([f"- **Severity change:** {f['severity_note']}"] if f.get("severity_note") else []),
             f"- **Failure scenario:** {f['failure_scenario']}",
             f"- **Evidence:** {f['evidence']}",
             f"- **Recommendation:** {f['recommendation']}",

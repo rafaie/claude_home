@@ -52,8 +52,9 @@ and dependencies. Every original AC must land in exactly one new story — list 
 
 ### 4. Retire the original story (story targets only)
 
-- In `spec/backlog.md` and its `status.md`: `**Status:** Split` and `Superseded by: <new IDs>`. `Split` is
-  terminal — the story leaves the workflow.
+- Record it: `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/story_state.py" split <story-id> --into <new IDs>`
+  (sets `**Status:** Split` and `**Superseded by:**`, the History line, and the backlog/epic rows). `Split`
+  is terminal — the story leaves the workflow.
 - If the original was `In Progress` with commits, tell the user. The first new story inherits its
   `**Base commit:**` and existing code; note this in that story's History.
 - Keep its folder for history; do not delete it.

@@ -237,6 +237,29 @@ and the optional knowledge graph with a `## Graph` section:
 - graph_docs: off       # off (code only) | session (graphify skill) | headless (API key)
 ```
 
+## Scripts
+
+The gates are enforced by scripts, not by the model's own judgment. Skills call them; you can too.
+
+| Script | Purpose |
+|---|---|
+| `scripts/run_checks.py` | Runs the project's checks (quick or full), stops at the first failure, validates smoke artifacts, and records results tied to the exact code tested; `--verify` says whether a recorded run still holds |
+| `scripts/gate_check.py` | Review gate: open findings, unmet ACs, freshness, waivers, and severity changes across rounds |
+| `scripts/story_state.py` | Every status transition (ready, start, review, done, block, split), with entry conditions; backlog/epic rows; de-duplicated follow-ups |
+| `scripts/run_state.py` | Story-run planning (dependency order) and resumable run state |
+| `scripts/codex_review.py`, `scripts/headless_review.sh` | Reviewer modes outside the session (Codex, `claude -p`) |
+| `scripts/graph.py` | Optional graphify knowledge graph: refresh and per-review impact |
+| `scripts/migrate_spec.py` | One-step migration from the legacy `spec/features/` layout |
+
+## Development
+
+The scripts have a test suite that runs against throwaway git repositories:
+
+```bash
+uv run --with pytest pytest -q tests
+uv run --with ruff ruff check scripts tests
+```
+
 ## License
 
 Apache-2.0

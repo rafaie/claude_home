@@ -1,7 +1,7 @@
 ---
 name: independent-review
 description: This skill should be used when the user asks to "review S-auth-005 independently", "run the independent reviewer", "review this with codex", "get a codex review", "independent review for", "re-review this story", "review epic E-03", "check the review gate", "waive finding F3", or when a story's code is committed and needs an unbiased review before it can be marked Done. Launches a reviewer with no access to the implementation conversation and gates on zero open high/medium findings.
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Independent Review
@@ -177,14 +177,23 @@ user and offer the `subagent` reviewer for this round instead.
 
 ## Step 7: Record
 
-Update the target's `status.md` (story) or the `## Integration review` section of `epic.md` (epic):
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/story_state.py" review <target-id-or-folder>
+```
 
-- Story `**Status:**` → `In Review` (unless already `Done`)
-- `**Review:**` → `r<N> PASS @ <short-sha>` or `r<N> FAIL (<h>H/<m>M open)`
-- History line: `<date> — independent review r<N> (<reviewer>): <verdict>, <h>H/<m>M/<l>L open`
+It records the latest round from the gate result — never from the reviewer's reply:
 
-On PASS, add each open **low** finding to a `## Follow-ups` section at the end of `spec/backlog.md`:
-`- <story-id> F<n> — <title> (`<file>:<line>`) — P3`. Do not duplicate entries from earlier rounds.
+- **Story:** `**Status:** In Review` (unless already `Done`), `**Review:** r<N> PASS @ <sha>` or
+  `r<N> FAIL (<h>H/<m>M open)`, a History line with the reviewer, counts, and any severity changes, and the
+  backlog/epic rows.
+- **Epic:** a line in `epic.md` `## Integration Review`; the epic becomes `Done` when the review passes and
+  every member story is Done.
+- **Run or range:** nothing beyond follow-ups (the story-runner records the run's state).
+- **Follow-ups** in `spec/backlog.md`: on PASS, each open **low** finding is added once — a finding at the
+  same `file:line` as an existing follow-up is merged into it ("also raised by …") — and follow-ups whose
+  finding a later round marks `fixed` are annotated as fixed.
+
+Do not edit `status.md`, the backlog, or follow-ups by hand for review results.
 
 ## Step 8: Report
 
@@ -195,6 +204,7 @@ Gate:     PASS | FAIL | ESCALATE
 Range:    <base-short>..<head-short> · <k> commits
 ACs:      <met>/<total> met
 Open:     <h> high · <m> medium · <l> low   (waived: <ids or none>)
+Severity: <changes reported by gate_check, e.g. "F3 low → medium (raised: …)", or none>
 
 | ID | Sev | Where | Finding | AC |
 |---|---|---|---|---|
@@ -204,7 +214,9 @@ Review:   <output_md>
 Next:     <see below>
 ```
 
-List only open high/medium findings in the table; mention the low count.
+List only open high/medium findings in the table; mention the low count. Always report severity changes
+between rounds — especially downgrades the gate ignored for lack of a `severity_note`, because they mean
+two reviewers disagreed and the user may want to decide.
 
 **Next step:**
 - **PASS** → the ship-feature skill (Definition of Done).

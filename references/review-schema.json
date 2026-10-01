@@ -2,28 +2,96 @@
   "$comment": "Review file r<N>.json, schema version 1 — see review-rubric.md. Strict form (all fields required, nullable where optional) so it can be used as a structured-output schema.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema", "target", "scope", "round", "reviewer", "base", "head", "reviewed_at", "verdict", "summary", "ac_coverage", "checks_run", "findings"],
+  "required": [
+    "schema",
+    "target",
+    "scope",
+    "round",
+    "reviewer",
+    "base",
+    "head",
+    "reviewed_at",
+    "verdict",
+    "summary",
+    "ac_coverage",
+    "checks_run",
+    "findings"
+  ],
   "properties": {
-    "schema": { "type": "integer", "enum": [1] },
-    "target": { "type": "string" },
-    "scope": { "type": "string", "enum": ["story", "epic", "range"] },
-    "round": { "type": "integer" },
-    "reviewer": { "type": "string", "enum": ["subagent", "subagent-fallback", "headless", "codex"] },
-    "base": { "type": "string" },
-    "head": { "type": "string" },
-    "reviewed_at": { "type": "string" },
-    "verdict": { "type": "string", "enum": ["PASS", "FAIL"] },
-    "summary": { "type": "string" },
+    "schema": {
+      "type": "integer",
+      "enum": [
+        1
+      ]
+    },
+    "target": {
+      "type": "string"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "story",
+        "epic",
+        "range"
+      ]
+    },
+    "round": {
+      "type": "integer"
+    },
+    "reviewer": {
+      "type": "string",
+      "enum": [
+        "subagent",
+        "subagent-fallback",
+        "headless",
+        "codex"
+      ]
+    },
+    "base": {
+      "type": "string"
+    },
+    "head": {
+      "type": "string"
+    },
+    "reviewed_at": {
+      "type": "string"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "FAIL"
+      ]
+    },
+    "summary": {
+      "type": "string"
+    },
     "ac_coverage": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["ac", "status", "evidence"],
+        "required": [
+          "ac",
+          "status",
+          "evidence"
+        ],
         "properties": {
-          "ac": { "type": "string" },
-          "status": { "type": "string", "enum": ["met", "partial", "not_met", "unverifiable"] },
-          "evidence": { "type": "string" }
+          "ac": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "met",
+              "partial",
+              "not_met",
+              "unverifiable"
+            ]
+          },
+          "evidence": {
+            "type": "string"
+          }
         }
       }
     },
@@ -32,11 +100,26 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["cmd", "result", "notes"],
+        "required": [
+          "cmd",
+          "result",
+          "notes"
+        ],
         "properties": {
-          "cmd": { "type": "string" },
-          "result": { "type": "string", "enum": ["pass", "fail", "skipped"] },
-          "notes": { "type": "string" }
+          "cmd": {
+            "type": "string"
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "pass",
+              "fail",
+              "skipped"
+            ]
+          },
+          "notes": {
+            "type": "string"
+          }
         }
       }
     },
@@ -45,20 +128,97 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "severity", "category", "status", "title", "file", "line", "ac", "failure_scenario", "evidence", "recommendation", "first_seen_round"],
+        "required": [
+          "id",
+          "severity",
+          "severity_note",
+          "category",
+          "status",
+          "title",
+          "file",
+          "line",
+          "ac",
+          "failure_scenario",
+          "evidence",
+          "recommendation",
+          "first_seen_round"
+        ],
         "properties": {
-          "id": { "type": "string" },
-          "severity": { "type": "string", "enum": ["high", "medium", "low", "info"] },
-          "category": { "type": "string", "enum": ["correctness", "security", "error-handling", "test-gap", "false-green", "contract", "regression", "performance", "maintainability", "docs", "constraint"] },
-          "status": { "type": "string", "enum": ["open", "fixed", "deferred"] },
-          "title": { "type": "string" },
-          "file": { "type": ["string", "null"] },
-          "line": { "type": ["integer", "null"] },
-          "ac": { "type": ["string", "null"] },
-          "failure_scenario": { "type": "string" },
-          "evidence": { "type": "string" },
-          "recommendation": { "type": "string" },
-          "first_seen_round": { "type": "integer" }
+          "id": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low",
+              "info"
+            ]
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "correctness",
+              "security",
+              "error-handling",
+              "test-gap",
+              "false-green",
+              "contract",
+              "regression",
+              "performance",
+              "maintainability",
+              "docs",
+              "constraint"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "fixed",
+              "deferred"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "file": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "line": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "ac": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "failure_scenario": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "recommendation": {
+            "type": "string"
+          },
+          "first_seen_round": {
+            "type": "integer"
+          },
+          "severity_note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       }
     }
