@@ -64,12 +64,19 @@ def rewrite_status(text: str) -> tuple[str, str | None]:
     return text[:block_end] + extra + text[block_end:], note
 
 
-def rewrite_links(text: str, names: list[str]) -> str:
-    """Point links at migrated story folders."""
+def rewrite_links(text: str, names: list[str], generic: bool = True) -> str:
+    """Point links at migrated story folders.
+
+    Args:
+        text: Markdown to rewrite.
+        names: Folder names that were moved to ``spec/stories/``.
+        generic: Also rewrite remaining generic ``spec/features/`` mentions. Only safe when no folder stays
+            behind in ``spec/features/`` (no conflicts); otherwise links to the skipped folders would break.
+    """
     for name in names:
         text = text.replace(f"features/{name}/feature.md", f"stories/{name}/story.md")
         text = text.replace(f"features/{name}", f"stories/{name}")
-    return text.replace("spec/features/", "spec/stories/")
+    return text.replace("spec/features/", "spec/stories/") if generic else text
 
 
 def is_tracked(repo: Path, path: Path) -> bool:
@@ -143,7 +150,7 @@ def main() -> int:
     changed = 0
     for p in (repo / "spec").rglob("*.md"):
         text = p.read_text()
-        new = rewrite_links(text, plan)
+        new = rewrite_links(text, plan, generic=not conflicts)
         if new != text:
             p.write_text(new)
             changed += 1

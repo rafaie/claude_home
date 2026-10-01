@@ -189,11 +189,13 @@ It records the latest round from the gate result — never from the reviewer's r
 - **Epic:** a line in `epic.md` `## Integration Review`; the epic becomes `Done` when the review passes and
   every member story is Done.
 - **Run or range:** nothing beyond follow-ups (the story-runner records the run's state).
-- **Follow-ups** in `spec/backlog.md`: on PASS, each open **low** finding is added once — a finding at the
+- **Follow-ups** in `spec/backlog.md`: on PASS, each open or deferred **low** finding is added once — a finding at the
   same `file:line` as an existing follow-up is merged into it ("also raised by …") — and follow-ups whose
   finding a later round marks `fixed` are annotated as fixed.
 
-Do not edit `status.md`, the backlog, or follow-ups by hand for review results.
+Do not edit `status.md`, the backlog, or follow-ups by hand for review results. If it refuses a legacy
+folder (`spec/features/…`), the review files are still valid — tell the user the project needs a one-step
+migration (`scripts/migrate_spec.py`, dry run first) before results can be recorded, and record them after.
 
 ## Step 8: Report
 

@@ -10,7 +10,7 @@ nothing when a condition fails:
                                          Ticks the Definition of Ready.
     start <story> [--base SHA]           Ready → In Progress. Records the base commit (HEAD by default).
     review <target> [--round N]          After an independent review of a story, epic, or run: records the
-                                         gate result; logs open low findings as backlog follow-ups on PASS
+                                         gate result; logs open/deferred low findings as backlog follow-ups on PASS
                                          (deduplicated by file:line) and marks follow-ups fixed by later rounds.
     done <story> [--note TEXT]           In Review → Done. Needs a PASSing, current review gate, a passing full
                                          check run on the current code (run_checks.py), and every AC ticked.
@@ -141,9 +141,12 @@ class Story:
 
     @property
     def status(self) -> str:
-        return get_field(self.status_text, "Status") or ""
+        """Canonical status (free-form or differently cased values are normalized like everywhere else)."""
+        raw = get_field(self.status_text, "Status") or ""
+        return run_state.normalize_status(raw) if raw else ""
 
     def epic_file(self) -> Path | None:
+        """The ``epic.md`` named by the story's ``**Epic:**`` header, if it exists."""
         epic = get_field(self.story_text, "Epic") or ""
         m = re.search(r"E-\d{2,}", epic)
         if not m:
@@ -175,10 +178,6 @@ def epic_id_of(folder: Path) -> str:
     return m.group(0) if m else folder.name
 
 
-def head(repo: Path) -> str:
-    return gate_check.git(repo, "rev-parse", "HEAD").stdout.strip()
-
-
 # ── Follow-ups ───────────────────────────────────────────────────────────────
 
 FOLLOWUP = re.compile(r"^- (?P<target>\S+) (?P<fid>F\d+) — (?P<rest>.*)$")
@@ -196,9 +195,8 @@ def update_followups(backlog: Path, target: str, round_no: int, findings: list[d
     """Add open low findings (on PASS) and mark fixed ones; dedupe by file:line. Returns change notes."""
     if not backlog.is_file():
         return []
-    text = backlog.read_text()
-    if "## Follow-ups" not in text:
-        text = text.rstrip("\n") + "\n\n## Follow-ups\n"
+    original = backlog.read_text()
+    text = original if "## Follow-ups" in original else original.rstrip("\n") + "\n\n## Follow-ups\n"
     lines = text.splitlines()
     start = next(i for i, ln in enumerate(lines) if ln.strip() == "## Follow-ups")
     end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
@@ -224,7 +222,7 @@ def update_followups(backlog: Path, target: str, round_no: int, findings: list[d
         if f.get("status") == "fixed" and match is not None and not is_marked_fixed(items[match]):
             items[match] += f" — fixed ({target} r{round_no})"
             notes.append(f"follow-up {items[match].split(' — ')[0][2:]} marked fixed")
-        elif gate_pass and f.get("status") == "open" and f.get("severity") == "low":
+        elif gate_pass and f.get("status") in ("open", "deferred") and f.get("severity") == "low":
             if match is None:
                 loc = f" (`{f['file']}:{f['line']}`)" if f.get("file") and f.get("line") else ""
                 items.append(f"- {ref} — {f.get('title', '')}{loc} — P3")
@@ -232,6 +230,8 @@ def update_followups(backlog: Path, target: str, round_no: int, findings: list[d
             elif not items[match].startswith(f"- {ref} ") and ref not in items[match]:
                 items[match] += f" — also raised by {ref}"
                 notes.append(f"follow-up merged: {ref} duplicates {items[match].split(' — ')[0][2:]}")
+    if not notes:  # nothing to add or annotate: leave the backlog untouched
+        return []
     lines[start + 1 : end] = [it for it in items if it.strip()] + ([""] if end < len(lines) else [])
     backlog.write_text("\n".join(lines).rstrip("\n") + "\n")
     return notes
@@ -267,7 +267,7 @@ def cmd_start(repo: Path, s: Story, base: str | None) -> str:
     if s.status != "Ready":
         raise ConditionError(f"{s.id} is {s.status}; only a Ready story can start (run spec-linter first)")
     current_base = (get_field(s.status_text, "Base commit") or "").strip("`")
-    sha = current_base if current_base.lower() not in UNSET_BASE else (base or head(repo))
+    sha = current_base if current_base.lower() not in UNSET_BASE else (base or run_checks.head(repo))
     s.status_text = set_field(s.status_text, "Base commit", sha)
     s.set_status("In Progress", f"work started; base commit {sha[:7]}")
     epic = s.epic_file()
@@ -362,7 +362,8 @@ def cmd_done(repo: Path, s: Story, note: str | None) -> str:
         impl.write_text(tick_section(impl.read_text(), "Tasks"))
     s.status_text = set_field(s.status_text, "Blockers", "none")
     s.set_status("Done", f"Definition of Done passed — review r{gate['round']} PASS @ {gate['reviewed_head'][:7]}; "
-                         f"full checks PASS @ {checks['head'][:7]}" + (f" (smoke {smoke})" if smoke else "")
+                         f"full checks PASS (run {checks.get('started_at', '?')}, same code)"
+                         + (f" (smoke {smoke})" if smoke else "")
                          + (f"; {note}" if note else ""))
     return f"{s.id}: In Review → Done"
 

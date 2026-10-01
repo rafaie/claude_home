@@ -339,3 +339,113 @@ def test_epic_progress_and_completion(repo: Path) -> None:
     text = (epic / "epic.md").read_text()
     assert "**Status:** Done" in text and "- r1 PASS @" in text and "- not run" not in text
     assert "**Status:** Done · **Outcome:** core works" in (repo / "spec" / "backlog.md").read_text()
+
+
+# ── review fixes: regression tests ────────────────────────────────────────────
+
+
+def test_verify_defaults_to_full_mode(repo: Path) -> None:
+    assert script(repo, "run_checks.py", "--mode", "quick", "--record", "S-core-001").returncode == 0
+    r = script(repo, "run_checks.py", "--verify", "S-core-001")  # no --mode: full is required
+    assert r.returncode == 1 and "full mode required" in r.stdout
+    assert script(repo, "run_checks.py", "--verify", "S-core-001", "--mode", "quick").returncode == 0
+
+
+def test_smoke_that_rewrites_an_existing_folder_still_counts(repo: Path) -> None:
+    assert script(repo, "run_checks.py", "--mode", "quick").returncode == 0  # creates artifacts/smoke/run1
+    r = script(repo, "run_checks.py", "--mode", "quick")  # same folder name, files rewritten in place
+    assert r.returncode == 0, r.stdout
+
+
+def test_code_tree_matches_an_independent_snapshot(repo: Path, tmp_path_factory: pytest.TempPathFactory) -> None:
+    import os
+
+    import run_checks
+
+    (repo / "src" / "new.py").write_text("y = 1\n")  # untracked code
+    (repo / "src" / "app.py").write_text("x = 9\n")  # modified tracked code
+    (repo / "notes.md").write_text("# doc\n")  # Markdown is excluded
+    tree = run_checks.code_tree(repo)
+    env = dict(os.environ, GIT_INDEX_FILE=str(tmp_path_factory.mktemp("index") / "index"))  # outside the repo
+    subprocess.run(["git", "-C", str(repo), "add", "-A", "--", ".", *run_checks.CODE_EXCLUDES],
+                   env=env, check=True, capture_output=True)
+    expected = subprocess.run(["git", "-C", str(repo), "write-tree"], env=env, check=True, capture_output=True,
+                              text=True).stdout.strip()
+    assert tree == expected
+    listed = sh(repo, "git", "ls-tree", "-r", "--name-only", tree).split()
+    assert listed == [".gitignore", "smoke.py", "src/app.py", "src/new.py"]  # no spec/, no Markdown
+
+
+def test_same_size_edit_right_after_checks_invalidates_them(repo: Path) -> None:
+    assert script(repo, "run_checks.py", "--mode", "full", "--record", "S-core-001").returncode == 0
+    (repo / "src" / "app.py").write_text("x = 7\n")  # same size as "x = 1", within the same second
+    r = script(repo, "run_checks.py", "--verify", "S-core-001")
+    assert r.returncode == 1 and "src/app.py" in r.stdout
+
+
+def test_deferred_low_findings_become_followups_and_no_op_reviews_leave_backlog_alone(repo: Path) -> None:
+    d = repo / "spec/stories/S-core-001-x"
+    head = sh(repo, "git", "rev-parse", "HEAD")
+    write_review(d, 1, head, [finding("F1", "high")])  # FAIL, no lows: no Follow-ups section appears
+    assert script(repo, "story_state.py", "review", "S-core-001").returncode == 0
+    backlog = (repo / "spec/backlog.md").read_text()
+    assert "## Follow-ups" not in backlog and "| S-core-001 | One | core | P1 | In Review |" in backlog
+    write_review(d, 2, head, [finding("F1", "high", status="fixed"), finding("F2", "low", status="deferred", line=7)])
+    assert script(repo, "story_state.py", "review", "S-core-001").returncode == 0
+    assert "- S-core-001 F2 — problem F2 (`src/app.py:7`) — P3" in (repo / "spec/backlog.md").read_text()
+
+
+def test_status_values_are_normalized_before_comparison(repo: Path) -> None:
+    d = repo / "spec/stories/S-core-001-x"
+    (d / "status.md").write_text((d / "status.md").read_text().replace("**Status:** Backlog", "**Status:** ready"))
+    r = script(repo, "story_state.py", "start", "S-core-001")
+    assert r.returncode == 0, r.stderr
+    assert "**Status:** In Progress" in (d / "status.md").read_text()
+
+
+def test_plan_limit_closure_is_transitive(repo: Path) -> None:
+    make_story(repo, "S-a-001", status="Ready", deps="S-a-003")
+    make_story(repo, "S-a-002", status="Ready", deps="S-a-001")
+    s3 = make_story(repo, "S-a-003", status="Ready")
+    (s3 / "story.md").write_text((s3 / "story.md").read_text().replace("**Priority:** P1", "**Priority:** P2"))
+    r = script(repo, "run_state.py", "plan", "--ready", "--priority", "P1", "--limit", "2", "--json")
+    plan = json.loads(r.stdout)
+    assert [s["id"] for s in plan["stories"]] == []  # S-a-001 needs S-a-003 (excluded); S-a-002 needs S-a-001
+    assert {e["id"] for e in plan["excluded"]} >= {"S-a-001", "S-a-002"}
+
+
+def test_plan_orders_by_dependency_and_flags_outside_dependencies(repo: Path) -> None:
+    make_story(repo, "S-b-001", status="Ready")
+    make_story(repo, "S-b-002", status="Ready", deps="S-b-001")
+    make_story(repo, "S-b-003", status="Ready", deps="S-b-009")
+    r = script(repo, "run_state.py", "plan", "S-b-002", "S-b-001", "--json")
+    assert [s["id"] for s in json.loads(r.stdout)["stories"]] == ["S-b-001", "S-b-002"]
+    r = script(repo, "run_state.py", "plan", "S-b-003")
+    assert r.returncode == 1 and "unknown" not in r.stdout and "S-b-009" in r.stdout
+
+
+def test_migration_normalizes_statuses_and_keeps_links_to_skipped_folders(repo: Path) -> None:
+    import migrate_spec
+
+    text, note = migrate_spec.rewrite_status("# S\n\n- Status: Ready to ship\n- Blockers: none\n")
+    assert "**Status:** In Review" in text and "**Legacy status:** Ready to ship" in text and note
+    links = "[a](features/S-x-001-a/feature.md) and spec/features/S-x-002-b/"
+    assert migrate_spec.rewrite_links(links, ["S-x-001-a"], generic=False) == (
+        "[a](stories/S-x-001-a/story.md) and spec/features/S-x-002-b/")
+
+
+def test_codex_prompt_parsing_and_report_rendering() -> None:
+    import codex_review
+
+    fields = codex_review.parse_prompt(
+        "Independent review request.\n\ntarget: S-x-001\nscope: story\nrepo_root: /r\nbase: aaa\nhead: bbb\n"
+        "round: 2\nspec_paths:\n  - /r/spec/a.md\n  - /r/spec/b.md\nrubric_path: /p/r.md\noutput_json: /r/o.json\n"
+        "output_md: /r/o.md\ntest_command: PYTHONPATH=src python3 -m unittest -q\n")
+    assert fields["spec_paths"] == ["/r/spec/a.md", "/r/spec/b.md"]
+    assert fields["test_command"] == "PYTHONPATH=src python3 -m unittest -q" and fields["round"] == "2"
+    review = {"target": "S-x-001", "scope": "story", "round": 2, "reviewer": "codex", "base": "a" * 40,
+              "head": "b" * 40, "reviewed_at": "2026-10-01T00:00:00Z", "verdict": "FAIL", "summary": "s",
+              "ac_coverage": [{"ac": "AC-1", "status": "met", "evidence": "e"}], "checks_run": [],
+              "findings": [finding("F3", "medium", note="new evidence: reachable from the CLI") | {"first_seen_round": 1}]}
+    md = codex_review.render_md(review)
+    assert "- **Severity change:** new evidence: reachable from the CLI" in md and "| F3 | medium | open |" in md

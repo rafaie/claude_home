@@ -38,7 +38,7 @@ cite the actual source line.
 |---|---|---|
 | `open` | reviewer | Defect present in the reviewed commit |
 | `fixed` | a later reviewer round | Reviewer verified the fix in the new commit |
-| `deferred` | reviewer (low/info only) | Not blocking; tracked as a follow-up |
+| `deferred` | reviewer (low/info only) | Not blocking; a deferred **low** finding becomes a backlog follow-up, a deferred **info** finding is an observation only |
 
 Waivers are **not** a finding status. Only the user can waive a high or medium finding, and the waiver is
 recorded in `reviews/waivers.json`, never by editing a review file.

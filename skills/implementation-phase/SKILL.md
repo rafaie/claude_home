@@ -40,6 +40,8 @@ When moving from `Ready` to `In Progress`:
   ```bash
   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/story_state.py" start <story-id>
   ```
+  A legacy folder (`spec/features/…`) must be migrated first (`scripts/migrate_spec.py`, dry run first,
+  with the user's OK) — `story_state.py` refuses to half-migrate one.
 
 ## Partial Completion Detection
 

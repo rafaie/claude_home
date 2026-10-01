@@ -66,7 +66,8 @@ It re-checks the mechanical parts of the Definition of Ready (at least two numbe
 Done or Split), then ticks the Definition of Ready, sets `**Status:** Ready`, adds the History line, and
 updates the backlog and epic rows. If a dependency is not Done but the user has explicitly agreed it is
 non-blocking, pass `--allow-dep <ID>`; never pass it on your own judgment. If it refuses, report the
-reason as a lint failure.
+reason as a lint failure. For a legacy folder it stops and asks for migration: report the lint result and
+recommend `scripts/migrate_spec.py` (dry run first) before the story is marked Ready.
 
 ## Output Format
 

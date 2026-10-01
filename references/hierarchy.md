@@ -128,8 +128,11 @@ complete" → In Review; "done / complete / shipped / merged" → Done; "in prog
 In Progress; "ready" → Ready; "planned / proposed / draft" → Backlog. Anything unrecognized is treated as
 In Progress, never as finished. Plain `Status:` lines (without bold) are accepted.
 
-When writing to a legacy folder, keep its layout — do not partially migrate. To migrate a project in one
-step, run (dry run by default):
+**Reading works everywhere; status transitions need the current layout.** Every skill can read and report
+on a legacy folder (status cards, planning, session start, review gate checks). Recording a transition —
+Ready, start, review result, Done, split — goes through `scripts/story_state.py`, which refuses legacy
+folders rather than half-migrating them. So before a legacy story is marked Ready, reviewed, or shipped,
+migrate the project — with the user's OK, dry run first — in one step:
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/migrate_spec.py"          # show planned changes

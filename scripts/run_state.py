@@ -224,13 +224,18 @@ def plan(repo: Path, args: argparse.Namespace) -> dict:
             external.append({"id": s["id"], "waits_on": [{"id": d, "status": dep_status(d)} for d in waiting]})
     if args.ready and args.limit:
         stories = stories[: args.limit]
-        # Keep the limited set closed under dependencies.
-        kept = {s["id"] for s in stories}
-        for s in list(stories):
-            missing = [d for d in s["depends_on"] if d not in kept and dep_status(d) not in FINISHED]
-            if missing:
-                stories.remove(s)
-                excluded.append({"id": s["id"], "reason": f"depends on {', '.join(missing)} (outside limit)"})
+        # Keep the limited set closed under dependencies — repeat until stable, because dropping one story
+        # can strand another story that depends on it.
+        changed = True
+        while changed:
+            changed = False
+            kept = {s["id"] for s in stories}
+            for s in list(stories):
+                missing = [d for d in s["depends_on"] if d not in kept and dep_status(d) not in FINISHED]
+                if missing:
+                    stories.remove(s)
+                    excluded.append({"id": s["id"], "reason": f"depends on {', '.join(missing)} (outside limit)"})
+                    changed = True
 
     ordered, cycle = ([], []) if not stories else topo_order(stories)
     for s in ordered:

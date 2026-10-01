@@ -13,7 +13,7 @@ A command set to ``skip`` (or ``none``/``off``) in ``## Commands`` is recorded a
 
 Usage:
     run_checks.py [--mode quick|full] [--record <story|run|epic folder or ID>] [--keep-going] [--json]
-    run_checks.py --verify <folder or ID> [--mode full]   # is the recorded run passing and still current?
+    run_checks.py --verify <folder or ID> [--mode quick]  # is the recorded full run passing and still current?
 
 With ``--record``, results go to ``<folder>/evidence/checks.json`` (machine-readable, used by
 ``story_state.py done`` and ``--verify``) and, for a story, a block appended to ``test-results.md``.
@@ -61,6 +61,8 @@ CODE_EXCLUDES = [
     *[f":(exclude,glob)**/*{suffix}" for suffix in gate_check.GENERATED_SUFFIXES],
 ]
 SMOKE_REQUIRED = ("summary.json", "stdout.txt", "stderr.txt", "timing.json")
+# Tolerance for filesystems with coarse modification times (HFS+ stores whole seconds).
+MTIME_SLACK = 1.0
 
 
 def read_commands(repo: Path) -> dict[str, str | None]:
@@ -91,6 +93,8 @@ def code_tree(repo: Path) -> str | None:
     Two states with the same code content have the same hash, so a check run stays valid when the code it
     tested is committed afterwards, and becomes invalid as soon as any code changes.
     """
+    # A fresh index makes git hash every file's current content. (Seeding it from the repo's index would be
+    # faster, but a copied index defeats git's racy-clean detection and can miss same-size edits.)
     with tempfile.TemporaryDirectory() as tmp:
         env = dict(os.environ, GIT_INDEX_FILE=str(Path(tmp) / "index"))
         add = subprocess.run(["git", "-C", str(repo), "add", "-A", "--", ".", *CODE_EXCLUDES], env=env,
@@ -102,15 +106,23 @@ def code_tree(repo: Path) -> str | None:
         return tree.stdout.strip() or None
 
 
+def latest_mtime(folder: Path) -> float:
+    """Newest modification time of a folder or anything inside it."""
+    times = [folder.stat().st_mtime]
+    times += [p.stat().st_mtime for p in folder.rglob("*") if p.is_file()]
+    return max(times)
+
+
 def smoke_dirs(repo: Path) -> dict[Path, float]:
+    """Artifact folders under ``artifacts/smoke`` with the newest modification time of their contents."""
     root = repo / SMOKE_DIR
-    return {d: d.stat().st_mtime for d in root.iterdir() if d.is_dir()} if root.is_dir() else {}
+    return {d: latest_mtime(d) for d in root.iterdir() if d.is_dir()} if root.is_dir() else {}
 
 
 def validate_smoke(repo: Path, before: dict[Path, float], started: float) -> dict:
-    """Find the artifact folder this smoke run produced and check the required files."""
+    """Find the artifact folder this smoke run produced or rewrote, and check the required files."""
     after = smoke_dirs(repo)
-    new = [d for d in after if d not in before or after[d] >= started]
+    new = [d for d in after if d not in before or after[d] != before[d] or after[d] >= started - MTIME_SLACK]
     if not new:
         return {"run_id": None, "dir": None, "ok": False, "missing": [f"no new folder under {SMOKE_DIR}/"]}
     d = max(new, key=lambda p: after[p])
@@ -254,7 +266,8 @@ def main() -> int:
     """CLI entrypoint. See the module docstring for usage and exit codes."""
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--repo", default=".", help="project root (default: .)")
-    parser.add_argument("--mode", choices=["quick", "full"], default="quick")
+    parser.add_argument("--mode", choices=["quick", "full"],
+                        help="checks to run (default quick); with --verify, the mode required (default full)")
     parser.add_argument("--record", help="story/run/epic folder or ID to record the results in")
     parser.add_argument("--verify", help="check the recorded run of this folder or ID instead of running checks")
     parser.add_argument("--keep-going", action="store_true", help="run every step even after a failure")
@@ -268,7 +281,7 @@ def main() -> int:
         if folder is None:
             print(f"target not found: {args.verify}", file=sys.stderr)
             return 2
-        ok, reasons = verify(folder, repo, args.mode)
+        ok, reasons = verify(folder, repo, args.mode or "full")
         print("CHECKS: current and passing" if ok else "CHECKS: NOT VALID\n" + "\n".join(f"  ✗ {r}" for r in reasons))
         return 0 if ok else 1
 
@@ -278,7 +291,7 @@ def main() -> int:
         if folder is None:
             print(f"target not found: {args.record}", file=sys.stderr)
             return 2
-    record = run(repo, args.mode, args.keep_going, args.timeout)
+    record = run(repo, args.mode or "quick", args.keep_going, args.timeout)
     print(json.dumps(record, indent=2) if args.json else render(record))
     if folder is not None:
         out = save(record, folder)
