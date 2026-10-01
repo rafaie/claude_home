@@ -29,11 +29,20 @@ from pathlib import Path
 
 STORY_ID = re.compile(r"\bS-[a-z0-9]+-\d{3}\b")
 EPIC_ID = re.compile(r"\bE-\d{2,}\b")
-LEGACY_PHASES = {
-    "planning": "Backlog", "planned": "Backlog", "test plan written": "In Progress",
-    "tests written": "In Progress", "implementation": "In Progress", "testing": "In Progress",
-    "implementation complete": "In Review", "shipped": "Done",
-}
+CANONICAL = ("Backlog", "Ready", "In Progress", "In Review", "Done", "Split")
+# Free-form status text seen in real projects → canonical status. First match wins, so more specific
+# phrases ("ready to ship") come before the words they contain ("ready", "ship").
+STATUS_KEYWORDS = [
+    (("superseded", "split", "not needed", "cancelled", "canceled", "dropped"), "Split"),
+    (("ready to ship", "implementation complete", "in review", "implemented", "awaiting review"), "In Review"),
+    (("done", "complete", "shipped", "closed", "merged"), "Done"),
+    (("in progress", "test plan written", "tests written", "testing", "implementation", "blocked", "wip"),
+     "In Progress"),
+    (("ready",), "Ready"),
+    (("backlog", "planning", "planned", "proposed", "draft", "todo", "to do", "not started"), "Backlog"),
+]
+STATUS_LINE = re.compile(r"^[ \t]*(?:[-*][ \t]+)?(?:\*\*)?(Status|Current phase)(?:\*\*)?[ \t]*:[ \t]*(?:\*\*)?[ \t]*(.+?)[ \t]*$",
+                         re.MULTILINE | re.IGNORECASE)
 FINISHED = {"Done", "Split"}
 GATES = ["ready", "build", "review", "dod"]
 STORY_STATES = {"pending", "active", "blocked", "escalated", "done", "skipped"}
@@ -48,6 +57,30 @@ def header_field(text: str, name: str) -> str | None:
     """Return a ``**Name:** value`` header field, stopping at a `·` separator or line end."""
     m = re.search(rf"\*\*{re.escape(name)}:\*\*\s*([^·\n]*)", text)
     return m.group(1).strip() if m else None
+
+
+def read_status_value(status_text: str) -> str | None:
+    """Return the raw status from ``status.md``: ``**Status:**``, plain ``Status:``, or legacy ``Current phase``.
+
+    A ``Status`` line wins over ``Current phase``; within each, the first occurrence wins.
+    """
+    found = {m.group(1).lower(): m.group(2) for m in reversed(list(STATUS_LINE.finditer(status_text)))}
+    return found.get("status") or found.get("current phase")
+
+
+def normalize_status(raw: str) -> str:
+    """Map a status value — canonical or free-form (``Ready to ship``, ``complete``) — to a canonical one.
+
+    Unrecognized text maps to ``In Progress`` so it is never mistaken for finished work.
+    """
+    text = raw.strip().strip("*`").lower()
+    for canonical in CANONICAL:
+        if text == canonical.lower():
+            return canonical
+    for words, canonical in STATUS_KEYWORDS:
+        if any(re.search(rf"\b{re.escape(w)}\b", text) for w in words):
+            return canonical
+    return "In Progress"
 
 
 def read_story(repo: Path, story_id: str) -> dict:
@@ -90,11 +123,9 @@ def read_story(repo: Path, story_id: str) -> dict:
 
     status_file = folder / "status.md"
     status_text = status_file.read_text() if status_file.is_file() else ""
-    status = header_field(status_text, "Status")
-    if status is None:
-        phase = header_field(status_text, "Current phase") or "planning"
-        status = LEGACY_PHASES.get(phase.lower(), "In Progress")
-    info["status"] = status
+    raw = read_status_value(status_text)
+    info["status"] = normalize_status(raw) if raw else "Backlog"
+    info["raw_status"] = raw
     return info
 
 
@@ -220,9 +251,9 @@ def plan(repo: Path, args: argparse.Namespace) -> dict:
 
 def render_plan(p: dict) -> str:
     """Human-readable plan."""
-    lines = [f"Run plan — {p['selection']}", "", " #  Story        Status        Next gate  Pri  Depends on",]
+    lines = [f"Run plan — {p['selection']}", "", " #  Story           Status        Next gate  Pri  Depends on",]
     for i, s in enumerate(p["stories"], 1):
-        lines.append(f" {i:<2} {s['id']:<12} {s['status']:<13} {s['next_gate']:<10} {s['priority'] or '-':<4} "
+        lines.append(f" {i:<2} {s['id']:<15} {s['status']:<13} {s['next_gate']:<10} {s['priority'] or '-':<4} "
                      f"{', '.join(s['depends_on']) or 'none'}")
     for e in p["excluded"]:
         lines.append(f"    excluded {e['id']}: {e['reason']}")
@@ -283,7 +314,7 @@ def render_run(run: dict) -> str:
     """Progress table: ✓ passed · ● current · ✗ blocked/escalated here · · not reached."""
     head = (f"Run {run['run']} · {run['status']} · branch {run.get('branch') or '-'} · "
             f"base {(run.get('base') or '-')[:7]}")
-    lines = [head, "", " #  Story        DoR  Build  Review  DoD   Review state          Commits  Notes"]
+    lines = [head, "", " #  Story           DoR  Build  Review  DoD   Review state          Commits  Notes"]
     for i, s in enumerate(run["stories"], 1):
         cur = GATES.index(s["gate"]) if s["gate"] in GATES else len(GATES)
         marks = []
@@ -297,7 +328,7 @@ def render_run(run: dict) -> str:
             else:
                 marks.append("·")
         note = s.get("blocked") or ""
-        lines.append(f" {i:<2} {s['id']:<12} {marks[0]:<4} {marks[1]:<6} {marks[2]:<7} {marks[3]:<5} "
+        lines.append(f" {i:<2} {s['id']:<15} {marks[0]:<4} {marks[1]:<6} {marks[2]:<7} {marks[3]:<5} "
                      f"{(s.get('review') or '-'):<21} {len(s.get('commits', [])):<8} {note}")
     c = run["close"]
     lines += ["", f"Close: {c['gate']}" + (f" · {c['review']}" if c.get("review") else "")]

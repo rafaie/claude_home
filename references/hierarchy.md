@@ -117,6 +117,12 @@ Legacy status values map as follows when read:
 | Shipped | Done |
 | Blocked | keep the prior status; record the reason under Blockers |
 
+Free-form status text from older projects is read by keyword (`scripts/run_state.py`,
+`normalize_status`): "superseded / not needed" → Split; "ready to ship / implemented / implementation
+complete" → In Review; "done / complete / shipped / merged" → Done; "in progress / testing / blocked" →
+In Progress; "ready" → Ready; "planned / proposed / draft" → Backlog. Anything unrecognized is treated as
+In Progress, never as finished. Plain `Status:` lines (without bold) are accepted.
+
 When writing to a legacy folder, keep its layout — do not partially migrate. To migrate a project in one
 step, run (dry run by default):
 

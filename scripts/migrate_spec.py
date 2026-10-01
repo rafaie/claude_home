@@ -24,52 +24,44 @@ import subprocess
 import sys
 from pathlib import Path
 
-PHASE_TO_STATUS = {
-    "planning": "Backlog",
-    "planned": "Backlog",
-    "test plan written": "In Progress",
-    "tests written": "In Progress",
-    "implementation": "In Progress",
-    "testing": "In Progress",
-    "in progress": "In Progress",
-    "implementation complete": "In Review",
-    "shipped": "Done",
-}
-PHASE_LINE = re.compile(r"^\*\*Current phase:\*\*\s*(.+?)\s*$", re.MULTILINE)
-
-
-def map_phase(phase: str) -> tuple[str, str | None]:
-    """Map a legacy phase to a status.
-
-    Returns:
-        ``(status, note)`` where note explains a lossy or unknown mapping, else None.
-    """
-    key = phase.strip().lower()
-    if key in PHASE_TO_STATUS:
-        return PHASE_TO_STATUS[key], None
-    if key.startswith("blocked"):
-        return "In Progress", f"legacy phase '{phase}' — record the reason under Blockers"
-    return "In Progress", f"unknown legacy phase '{phase}' — mapped to In Progress, check manually"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from run_state import CANONICAL, STATUS_LINE, normalize_status
 
 
 def rewrite_status(text: str) -> tuple[str, str | None]:
-    """Convert a legacy status.md body to the new format."""
-    m = PHASE_LINE.search(text)
-    if not m:
-        return text, None
-    status, note = map_phase(m.group(1))
-    text = PHASE_LINE.sub(f"**Status:** {status}", text, count=1)
+    """Convert a status.md body to the new format.
+
+    Handles ``**Current phase:**``, ``**Status:**``, and plain or bulleted ``Status:`` lines with
+    free-form values. The first ``Status`` line wins over ``Current phase``. A non-canonical value is
+    normalized, and the original wording is kept on a ``**Legacy status:**`` line.
+
+    Returns:
+        ``(new_text, note)`` where note describes a non-trivial mapping, else None.
+    """
+    matches = list(STATUS_LINE.finditer(text))
+    m = next((x for x in matches if x.group(1).lower() == "status"), matches[0] if matches else None)
+    if m is None:
+        title_end = text.find("\n") + 1 if text.startswith("#") else 0
+        text = text[:title_end] + "\n**Status:** Backlog\n" + text[title_end:]
+        block_end, note = text.index("**Status:** Backlog") + len("**Status:** Backlog"), "no status line — set to Backlog"
+    else:
+        raw = m.group(2).strip().strip("*`").strip()
+        status = normalize_status(raw)
+        block = f"**Status:** {status}"
+        note = None
+        if raw not in CANONICAL:
+            block += f"\n**Legacy status:** {raw}"
+            note = f"status '{raw}' → {status}"
+        text = text[: m.start()] + block + text[m.end() :]
+        block_end = m.start() + len(block)
     extra = ""
+    if "**Blockers:**" not in text and not re.search(r"^[ \t]*(?:[-*][ \t]+)?Blockers:", text, re.MULTILINE | re.IGNORECASE):
+        extra += "\n**Blockers:** none"
     if "**Base commit:**" not in text:
-        extra += "**Base commit:** unknown (migrated)\n"
+        extra += "\n**Base commit:** unknown (migrated)"
     if "**Review:**" not in text:
-        extra += "**Review:** not started\n"
-    if extra:
-        blockers = re.search(r"^\*\*Blockers:\*\*.*$", text, re.MULTILINE)
-        anchor = blockers or re.search(r"^\*\*Status:\*\*.*$", text, re.MULTILINE)
-        assert anchor is not None
-        text = text[: anchor.end()] + "\n" + extra.rstrip("\n") + text[anchor.end() :]
-    return text, note
+        extra += "\n**Review:** not started"
+    return text[:block_end] + extra + text[block_end:], note
 
 
 def rewrite_links(text: str, names: list[str]) -> str:
