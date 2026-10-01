@@ -54,11 +54,13 @@ STEPS = {
              ("tests", "test_full"), ("smoke", "smoke")],
 }
 SMOKE_DIR = Path("artifacts/smoke")
-# Pathspecs that leave only code in a tree snapshot (same notion of "code" as gate_check.is_code).
-CODE_EXCLUDES = [
-    ":(exclude)spec", ":(exclude)artifacts", ":(exclude)graphify-out", ":(exclude,glob)**/*.md",
-    *[f":(exclude,glob)**/{d}/**" for d in sorted(gate_check.GENERATED_DIRS)],
-    *[f":(exclude,glob)**/*{suffix}" for suffix in gate_check.GENERATED_SUFFIXES],
+# Non-code paths removed from a code snapshot (same notion of "code" as gate_check.is_code). They are removed
+# after staging rather than excluded while staging: git refuses an exclude pathspec that names an ignored path
+# (e.g. a gitignored `artifacts/`), which would make every snapshot fail.
+NON_CODE_PATHSPECS = [
+    "spec", "artifacts", "graphify-out", ":(glob)**/*.md",
+    *[f":(glob)**/{d}/**" for d in sorted(gate_check.GENERATED_DIRS)],
+    *[f":(glob)**/*{suffix}" for suffix in gate_check.GENERATED_SUFFIXES],
 ]
 SMOKE_REQUIRED = ("summary.json", "stdout.txt", "stderr.txt", "timing.json")
 # Tolerance for filesystems with coarse modification times (HFS+ stores whole seconds).
@@ -97,9 +99,13 @@ def code_tree(repo: Path) -> str | None:
     # faster, but a copied index defeats git's racy-clean detection and can miss same-size edits.)
     with tempfile.TemporaryDirectory() as tmp:
         env = dict(os.environ, GIT_INDEX_FILE=str(Path(tmp) / "index"))
-        add = subprocess.run(["git", "-C", str(repo), "add", "-A", "--", ".", *CODE_EXCLUDES], env=env,
+        add = subprocess.run(["git", "-C", str(repo), "add", "-A", "--", "."], env=env,
                              capture_output=True, text=True, check=False)
         if add.returncode != 0:
+            return None
+        rm = subprocess.run(["git", "-C", str(repo), "rm", "-r", "-q", "--cached", "--ignore-unmatch", "--",
+                             *NON_CODE_PATHSPECS], env=env, capture_output=True, text=True, check=False)
+        if rm.returncode != 0:
             return None
         tree = subprocess.run(["git", "-C", str(repo), "write-tree"], env=env, capture_output=True, text=True,
                               check=False)

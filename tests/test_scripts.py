@@ -90,7 +90,7 @@ def repo(tmp_path: Path) -> Path:
     sh(tmp_path, "git", "init", "-q")
     sh(tmp_path, "git", "config", "user.email", "t@example.com")
     sh(tmp_path, "git", "config", "user.name", "t")
-    (tmp_path / ".gitignore").write_text("__pycache__/\n")
+    (tmp_path / ".gitignore").write_text("__pycache__/\nartifacts/\n")  # like real projects
     (tmp_path / "smoke.py").write_text(SMOKE)
     (tmp_path / "src").mkdir()
     (tmp_path / "src" / "app.py").write_text("x = 1\n")
@@ -357,23 +357,20 @@ def test_smoke_that_rewrites_an_existing_folder_still_counts(repo: Path) -> None
     assert r.returncode == 0, r.stdout
 
 
-def test_code_tree_matches_an_independent_snapshot(repo: Path, tmp_path_factory: pytest.TempPathFactory) -> None:
-    import os
-
+def test_code_tree_snapshots_current_code_only(repo: Path) -> None:
     import run_checks
 
     (repo / "src" / "new.py").write_text("y = 1\n")  # untracked code
     (repo / "src" / "app.py").write_text("x = 9\n")  # modified tracked code
-    (repo / "notes.md").write_text("# doc\n")  # Markdown is excluded
+    (repo / "notes.md").write_text("# doc\n")  # Markdown is not code
+    (repo / "artifacts" / "smoke").mkdir(parents=True)  # gitignored output must not break the snapshot
+    (repo / "artifacts" / "smoke" / "x.json").write_text("{}")
     tree = run_checks.code_tree(repo)
-    env = dict(os.environ, GIT_INDEX_FILE=str(tmp_path_factory.mktemp("index") / "index"))  # outside the repo
-    subprocess.run(["git", "-C", str(repo), "add", "-A", "--", ".", *run_checks.CODE_EXCLUDES],
-                   env=env, check=True, capture_output=True)
-    expected = subprocess.run(["git", "-C", str(repo), "write-tree"], env=env, check=True, capture_output=True,
-                              text=True).stdout.strip()
-    assert tree == expected
+    assert tree is not None
     listed = sh(repo, "git", "ls-tree", "-r", "--name-only", tree).split()
-    assert listed == [".gitignore", "smoke.py", "src/app.py", "src/new.py"]  # no spec/, no Markdown
+    assert listed == [".gitignore", "smoke.py", "src/app.py", "src/new.py"]  # no spec/, Markdown, or artifacts
+    blob = sh(repo, "git", "rev-parse", f"{tree}:src/app.py")
+    assert blob == sh(repo, "git", "hash-object", "src/app.py")  # the current content, not the committed one
 
 
 def test_same_size_edit_right_after_checks_invalidates_them(repo: Path) -> None:
